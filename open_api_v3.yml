@@ -1,0 +1,667 @@
+openapi: 3.0.0
+info:
+  title: SP Ecosystem API
+  version: "1.0"
+paths:
+  /v1/news:
+    get:
+      summary: Получить список новостей
+      operationId: Contents_GetNewsList
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetNewsListResponse"
+              examples:
+                NEWS_LIST_IS_EXITS:
+                  value:
+                    items:
+                      - id: 11876
+                        title: 20.11,21 измененная
+                        annotation: Просмотр новостей
+                        partner:
+                          id: 1
+                          name: ''
+                        content: Контент
+                        hash: 480107c7e081f07e1a616b3e98a1bc89
+                        preview_img: 05d69995e3bdf2949c480d5a2464dcbf
+                        tags: [ ]
+                        status: NEWS_STATUS_ACTIVE
+                        type: CONTENT_TYPE_NEWS
+                        published_at: '2021-11-19T08:03:29Z'
+                        created_at: '2021-11-20T08:03:11.199794Z'
+                        category:
+                          id: 34
+                        source:
+                          id: 22
+                        preview_img_title: ''
+                        preview_img_url: ''
+                        hyper_link: ''
+                        hyper_link_title: ''
+                        author:
+                          id: 19
+                        subject:
+                          id: 32
+                        time_to_read:
+                        super_category:
+                        seo:
+                          title: ''
+                          description: ''
+                          keywords: ''
+        "400":
+          description: The request parameters did not conform to expectations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                response:
+                  value:
+                    code: 3
+                    message: api.validation_error
+        "401":
+          description: The API token is invalid or has expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                response:
+                  value:
+                    code: 16
+                    message: api.session_not_found_error
+        "403":
+          description: The API token does not grant access to this resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                response:
+                  value:
+                    code: 7
+                    message: api.no_read_permission_error
+        "404":
+          description: The resource could not be located with the current API token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                response:
+                  value:
+                    code: 13
+                    message: api.internal_error
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: filter.ids
+          in: query
+          required: false
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+          examples:
+            NEWS_LIST_IS_EXITS:
+              value: [11876]
+            NEWS_NOT_EXISTS:
+              value: [100500]
+        - name: filter.user_ids
+          in: query
+          required: false
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+          examples:
+            NEWS_LIST_IS_EXITS:
+              value: [ 1, 2 ]
+            NEWS_NOT_EXISTS:
+              value: [ 100500 ]
+        - name: filter.status
+          in: query
+          required: false
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - NEWS_STATUS_UNSPECIFIED
+                - NEWS_STATUS_SUGGESTED
+                - NEWS_STATUS_ACTIVE
+                - NEWS_STATUS_INACTIVE
+                - NEWS_STATUS_PENDING
+          examples:
+            NEWS_LIST_IS_EXITS:
+              value: [ NEWS_STATUS_SUGGESTED, NEWS_STATUS_ACTIVE ]
+            NEWS_NOT_EXISTS:
+              value: [ NEWS_STATUS_UNSPECIFIED ]
+        - name: filter.type
+          in: query
+          required: false
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - CONTENT_TYPE_UNSPECIFIED
+                - CONTENT_TYPE_NEWS
+                - CONTENT_TYPE_PARTNER_ARTICLE
+                - CONTENT_TYPE_OGON_ARTICLE
+                - CONTENT_TYPE_ENTERTAINMENT_ARTICLE
+        - name: filter.title
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: filter.from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: filter.till
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: filter.features_ids
+          in: query
+          required: false
+          explode: true
+          schema:
+            type: array
+            items:
+              type: integer
+              format: int64
+        - name: paginator.offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: paginator.limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+      tags:
+        - Contents
+#      security:
+#        - Bearer: []
+  "/v1/news/{news_id}":
+    get:
+      summary: Получить новость
+      operationId: Contents_GetNewsById
+      responses:
+        "200":
+          description: A successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/News"
+              examples:
+                NEWS_EXISTS:
+                  value:
+                    id: 11876
+                    title: 20.11,21 измененная
+                    annotation: Просмотр новостей
+                    partner:
+                      id: 1
+                      name: ''
+                    content: Контент
+                    hash: 480107c7e081f07e1a616b3e98a1bc89
+                    preview_img: 05d69995e3bdf2949c480d5a2464dcbf
+                    tags: [ ]
+                    status: NEWS_STATUS_ACTIVE
+                    type: CONTENT_TYPE_NEWS
+                    published_at: '2021-11-19T08:03:29Z'
+                    created_at: '2021-11-20T08:03:11.199794Z'
+                    category:
+                      id: 34
+                    source:
+                      id: 22
+                    preview_img_title: ''
+                    preview_img_url: ''
+                    hyper_link: ''
+                    hyper_link_title: ''
+                    author:
+                      id: 19
+                    subject:
+                      id: 32
+                    time_to_read:
+                    super_category:
+                    seo:
+                      title: ''
+                      description: ''
+                      keywords: ''
+        "400":
+          description: The request parameters did not conform to expectations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                response:
+                  value:
+                    code: 3
+                    message: api.validation_error
+        "401":
+          description: The API token is invalid or has expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                response:
+                  value:
+                    code: 16
+                    message: api.session_not_found_error
+        "403":
+          description: The API token does not grant access to this resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                response:
+                  value:
+                    code: 7
+                    message: api.no_read_permission_error
+        "404":
+          description: The resource could not be located with the current API token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                NEWS_NOT_EXISTS:
+                  value:
+                    code: 5
+                    message: api.row_not_found_error
+        "500":
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                response:
+                  value:
+                    code: 13
+                    message: api.internal_error
+        default:
+          description: An unexpected error response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rpcStatus"
+      parameters:
+        - name: news_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          examples:
+            NEWS_EXISTS:
+              value: 11876
+            NEWS_NOT_EXISTS:
+              value: 100500
+      tags:
+        - Contents
+#      security:
+#        - Bearer: []
+servers:
+  - url: https://st-widget.ogon.ru
+#security:
+#  - {}
+#  - type: ["apiKey"]
+#    name: ["Authorization"]
+#    in:
+components:
+  securitySchemes:
+    Bearer:
+      type: apiKey
+      name: Authorization
+      in: header
+  schemas:
+    ContentType:
+      type: string
+      enum:
+        - CONTENT_TYPE_UNSPECIFIED
+        - CONTENT_TYPE_NEWS
+        - CONTENT_TYPE_PARTNER_ARTICLE
+        - CONTENT_TYPE_OGON_ARTICLE
+        - CONTENT_TYPE_ENTERTAINMENT_ARTICLE
+      default: CONTENT_TYPE_UNSPECIFIED
+    ContentVisibility:
+      type: string
+      enum:
+        - CONTENT_VISIBILITY_UNSPECIFIED
+        - CONTENT_VISIBILITY_ALL
+        - CONTENT_VISIBILITY_SUBSCRIBER
+        - CONTENT_VISIBILITY_NOT_SUBSCRIBER
+      default: CONTENT_VISIBILITY_UNSPECIFIED
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int64
+          description: Code of the error
+        message:
+          type: string
+          description: Message of the error
+        details:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+        - code
+        - message
+    GetNewsListFilter:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: integer
+            format: int64
+        user_ids:
+          type: array
+          items:
+            type: integer
+            format: int64
+        status:
+          type: array
+          items:
+            $ref: "#/components/schemas/NewsStatus"
+        type:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContentType"
+        title:
+          type: string
+        from:
+          type: string
+          format: date-time
+        till:
+          type: string
+          format: date-time
+        features_ids:
+          type: array
+          items:
+            type: integer
+            format: int64
+    GetNewsListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/News"
+        count:
+          type: integer
+          format: int64
+      required:
+        - items
+        - count
+    ModelFieldType:
+      type: string
+      enum:
+        - MODEL_FIELD_TYPE_UNSPECIFIED
+        - MODEL_FIELD_TYPE_PURCHASE_AT
+        - MODEL_FIELD_TYPE_PUBLISHED_AT
+        - MODEL_FIELD_TYPE_START_AT
+        - MODEL_FIELD_TYPE_EXPIRATION_AT
+        - MODEL_FIELD_TYPE_IS_VIEWED
+        - MODEL_FIELD_TYPE_ID
+        - MODEL_FIELD_TYPE_USER_ID
+        - MODEL_FIELD_TYPE_PARTNER_ID
+        - MODEL_FIELD_TYPE_SUBSCRIPTION_ID
+        - MODEL_FIELD_TYPE_STATUS
+        - MODEL_FIELD_TYPE_TYPE
+        - MODEL_FIELD_TYPE_REACTION
+        - MODEL_FIELD_TYPE_CREATED_AT
+        - MODEL_FIELD_TYPE_UPDATED_AT
+        - MODEL_FIELD_TYPE_ASSIGNMENT_EXPIRATION_AT
+        - MODEL_FIELD_TYPE_QUERY
+        - MODEL_FIELD_TYPE_UPLOAD_ID
+        - MODEL_FIELD_TYPE_VALUE
+        - MODEL_FIELD_TYPE_STATE
+      default: MODEL_FIELD_TYPE_UNSPECIFIED
+    News:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        title:
+          type: string
+        annotation:
+          type: string
+        partner:
+          $ref: "#/components/schemas/PartnerLink"
+        content:
+          type: string
+        hash:
+          type: string
+        preview_img:
+          type: string
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/NewsFeatureLink"
+        status:
+          $ref: "#/components/schemas/NewsStatus"
+        type:
+          $ref: "#/components/schemas/ContentType"
+        published_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        category:
+          $ref: "#/components/schemas/NewsFeatureLink"
+        source:
+          $ref: "#/components/schemas/NewsFeatureLink"
+        preview_img_title:
+          type: string
+        preview_img_url:
+          type: string
+        hyper_link:
+          type: string
+        hyper_link_title:
+          type: string
+        author:
+          $ref: "#/components/schemas/NewsFeatureLink"
+        subject:
+          $ref: "#/components/schemas/NewsFeatureLink"
+        time_to_read:
+          $ref: "#/components/schemas/NewsFeatureLink"
+        super_category:
+          $ref: "#/components/schemas/NewsFeatureLink"
+        seo:
+          $ref: "#/components/schemas/Seo"
+      required:
+        - id
+        - title
+        - annotation
+        - content
+        - hash
+        - preview_img
+        - status
+        - type
+        - created_at
+    NewsFeature:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/NewsFeatureType"
+        status:
+          $ref: "#/components/schemas/NewsFeatureStatus"
+        parent_id:
+          type: integer
+          format: int64
+    NewsFeatureLink:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+      required:
+        - id
+    NewsFeatureStatus:
+      type: string
+      enum:
+        - NEWS_FEATURE_STATUS_UNSPECIFIED
+        - NEWS_FEATURE_STATUS_ACTIVE
+        - NEWS_FEATURE_STATUS_INACTIVE
+      default: NEWS_FEATURE_STATUS_UNSPECIFIED
+    NewsFeatureType:
+      type: string
+      enum:
+        - NEWS_FEATURE_TYPE_UNSPECIFIED
+        - NEWS_FEATURE_TYPE_CATEGORY
+        - NEWS_FEATURE_TYPE_SOURCE
+        - NEWS_FEATURE_TYPE_TAG
+        - NEWS_FEATURE_TYPE_SUBJECT
+        - NEWS_FEATURE_TYPE_AUTHOR
+        - NEWS_FEATURE_TYPE_TIME_TO_READ
+        - NEWS_FEATURE_TYPE_SUPER_CATEGORY
+      default: NEWS_FEATURE_TYPE_UNSPECIFIED
+    NewsStatus:
+      type: string
+      enum:
+        - NEWS_STATUS_UNSPECIFIED
+        - NEWS_STATUS_SUGGESTED
+        - NEWS_STATUS_ACTIVE
+        - NEWS_STATUS_INACTIVE
+        - NEWS_STATUS_PENDING
+      default: NEWS_STATUS_UNSPECIFIED
+    Paginator:
+      type: object
+      properties:
+        offset:
+          type: integer
+          format: int64
+        limit:
+          type: integer
+          format: int64
+    PartnerLink:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+      required:
+        - id
+    SearchFilter:
+      type: object
+      properties:
+        field:
+          $ref: "#/components/schemas/ModelFieldType"
+        operator:
+          $ref: "#/components/schemas/SearchFilterOperator"
+        value_int:
+          type: integer
+          format: int64
+        value_bool:
+          type: boolean
+        value_double:
+          type: number
+          format: double
+        value_string:
+          type: string
+        value_date:
+          type: string
+          format: date-time
+    SearchFilterOperator:
+      type: string
+      enum:
+        - SEARCH_FILTER_OPERATOR_UNSPECIFIED
+        - SEARCH_FILTER_OPERATOR_GREATER
+        - SEARCH_FILTER_OPERATOR_GREATER_OR_EQUAL
+        - SEARCH_FILTER_OPERATOR_LESS
+        - SEARCH_FILTER_OPERATOR_LESS_OR_EQUAL
+        - SEARCH_FILTER_OPERATOR_NOT_EQUAL
+        - SEARCH_FILTER_OPERATOR_NOT
+        - SEARCH_FILTER_OPERATOR_LIKE
+        - SEARCH_FILTER_OPERATOR_IS_NULL
+        - SEARCH_FILTER_OPERATOR_EQUAL
+        - SEARCH_FILTER_OPERATOR_I_LIKE
+      default: SEARCH_FILTER_OPERATOR_UNSPECIFIED
+    Seo:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        keywords:
+          type: string
+    Sorter:
+      type: object
+      properties:
+        field:
+          $ref: "#/components/schemas/ModelFieldType"
+        order:
+          $ref: "#/components/schemas/SorterOrderType"
+    SorterOrderType:
+      type: string
+      enum:
+        - SORTER_ORDER_TYPE_UNSPECIFIED
+        - SORTER_ORDER_TYPE_ASC
+        - SORTER_ORDER_TYPE_DESC
+        - SORTER_ORDER_TYPE_RAND
+      default: SORTER_ORDER_TYPE_UNSPECIFIED
+    protobufAny:
+      type: object
+      properties:
+        type_url:
+          type: string
+        value:
+          type: string
+          format: byte
+    rpcStatus:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            $ref: "#/components/schemas/protobufAny"
