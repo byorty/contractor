@@ -16,13 +16,12 @@ type Application struct {
 	options []fx.Option
 }
 
-func New(providers ...interface{}) *Application {
+func NewApplication(providers ...interface{}) *Application {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 
 	app := &Application{
 		options: []fx.Option{
-			// Debug:: fx.Logger(logger.NewFxLogger()),
 			fx.NopLogger,
 		},
 		ctx:    ctx,
@@ -57,7 +56,6 @@ func (a *Application) Run(invoker interface{}) {
 			return args
 		}),
 		fx.Invoke(invoker),
-		//fx.Populate(&a.logger),
 	)
 	a.fxApp = fx.New(a.options...)
 
@@ -67,27 +65,8 @@ func (a *Application) Run(invoker interface{}) {
 	defer cancel()
 
 	if err = a.fxApp.Start(startCtx); err != nil {
-		//if a.logger == nil {
-		//	panic(err)
-		//}
-		//
-		//a.logger.Fatal(err)
+		panic(err)
 	}
-}
-
-func (a *Application) Demonize(invoker interface{}) {
-	a.Run(invoker)
-	<-a.ctx.Done()
-}
-
-func (a *Application) Stop() {
-	stopCtx, cancel := context.WithTimeout(a.ctx, fx.DefaultTimeout)
-	defer cancel()
-	err := a.fxApp.Stop(stopCtx)
-	if err != nil {
-		//a.logger.Fatal(err)
-	}
-	a.fxApp = nil
 }
 
 func (a *Application) listenSignals() {

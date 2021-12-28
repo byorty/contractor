@@ -4,21 +4,28 @@ import (
 	"context"
 	"github.com/byorty/contractor/common"
 	"github.com/byorty/contractor/converter"
+	"go.uber.org/fx"
 )
 
-func NewFxWorker(
-	cnv converter.Converter,
-	tester Tester,
-) common.Worker {
+type WorkerIn struct {
+	fx.In
+	Converter converter.Converter
+	Tester    Tester
+	Reporters []Reporter `group:"reporter"`
+}
+
+func NewFxWorker(in WorkerIn) common.Worker {
 	return &Worker{
-		converter: cnv,
-		tester:    tester,
+		converter: in.Converter,
+		tester:    in.Tester,
+		reporters: in.Reporters,
 	}
 }
 
 type Worker struct {
 	converter converter.Converter
 	tester    Tester
+	reporters []Reporter
 }
 
 func (w *Worker) GetType() common.WorkerKind {
@@ -37,9 +44,16 @@ func (w *Worker) Configure(ctx context.Context, arguments common.Arguments) erro
 }
 
 func (w *Worker) Run() error {
-	err := w.tester.Test()
+	container, err := w.tester.Test()
 	if err != nil {
 		return err
+	}
+
+	for _, reporter := range w.reporters {
+		err := reporter.Report(container)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

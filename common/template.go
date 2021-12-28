@@ -7,7 +7,7 @@ import (
 )
 
 type Template struct {
-	StatusCode        int
+	UID               string
 	BaseUrl           string
 	Path              string
 	Method            string
@@ -43,4 +43,4 @@ func (t Template) GetQueryParams() url.Values {
 	return values
 }
 
-type TemplateContainer map[string]map[string]Template
+type TemplateContainer map[string]Template

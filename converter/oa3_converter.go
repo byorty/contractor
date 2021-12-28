@@ -3,21 +3,20 @@ package converter
 import (
 	"context"
 	"github.com/byorty/contractor/common"
-	"github.com/byorty/contractor/logger"
 	"github.com/getkin/kin-openapi/openapi3"
 	"strconv"
 )
 
 func NewFxOa3Converter(
-	logger *logger.Logger,
+	mediaConverter common.MediaConverter,
 ) Converter {
 	return &oa3Converter{
-		logger: logger,
+		mediaConverter: mediaConverter,
 	}
 }
 
 type oa3Converter struct {
-	logger *logger.Logger
+	mediaConverter common.MediaConverter
 }
 
 func (c *oa3Converter) Convert(ctx context.Context, arguments common.Arguments) (common.TemplateContainer, error) {
@@ -35,22 +34,15 @@ func (c *oa3Converter) Convert(ctx context.Context, arguments common.Arguments) 
 	container := make(common.TemplateContainer)
 	for pathName, pathRef := range spec.Paths {
 		for httpMethod, operation := range pathRef.Operations() {
-			c.logger.PrintH1("Operation: %s", operation.OperationID)
-			c.logger.PrintH2("Path: %s", pathName)
-			collection, ok := container[operation.OperationID]
-			if !ok {
-				collection = make(map[string]common.Template)
-				container[operation.OperationID] = collection
-			}
-
 			for _, parameterRef := range operation.Parameters {
 				parameter := parameterRef.Value
 
 				for exampleName, exampleRef := range parameter.Examples {
-					template, ok := collection[exampleName]
+					template, ok := container[exampleName]
 					if !ok {
 						template = common.Template{
 							BaseUrl:           arguments.BaseUrl,
+							UID:               operation.OperationID,
 							Path:              pathName,
 							Method:            httpMethod,
 							PathParams:        make(map[string]interface{}),
@@ -60,29 +52,20 @@ func (c *oa3Converter) Convert(ctx context.Context, arguments common.Arguments) 
 							ExpectedResponses: make(map[int]map[string]interface{}),
 						}
 
-						collection[exampleName] = template
+						container[exampleName] = template
 					}
 
 					switch parameter.In {
 					case openapi3.ParameterInPath:
-						collection[exampleName].PathParams[parameter.Name] = exampleRef.Value.Value
+						container[exampleName].PathParams[parameter.Name] = exampleRef.Value.Value
 					case openapi3.ParameterInQuery:
-						collection[exampleName].QueryParams[parameter.Name] = exampleRef.Value.Value
+						container[exampleName].QueryParams[parameter.Name] = exampleRef.Value.Value
 					case openapi3.ParameterInHeader:
-						collection[exampleName].HeaderParams[parameter.Name] = exampleRef.Value.Value
+						container[exampleName].HeaderParams[parameter.Name] = exampleRef.Value.Value
 					case openapi3.ParameterInCookie:
-						collection[exampleName].CookieParams[parameter.Name] = exampleRef.Value.Value
+						container[exampleName].CookieParams[parameter.Name] = exampleRef.Value.Value
 					}
-
 				}
-			}
-
-			for example, template := range collection {
-				c.logger.PrintH2("Example: %s", example)
-				c.logger.PrintH2Parameters("Header Parameters", template.HeaderParams)
-				c.logger.PrintH2Parameters("Path Parameters", template.PathParams)
-				c.logger.PrintH2Parameters("Query Parameters", template.QueryParams)
-				c.logger.PrintH2Parameters("Cookie Parameters", template.CookieParams)
 			}
 
 			for statusCodeName, responseRef := range operation.Responses {
@@ -93,7 +76,7 @@ func (c *oa3Converter) Convert(ctx context.Context, arguments common.Arguments) 
 
 				for mediaTypeName, mediaType := range responseRef.Value.Content {
 					for exampleName, exampleRef := range mediaType.Examples {
-						template := container[operation.OperationID][exampleName]
+						template := container[exampleName]
 
 						if template.ExpectedResponses == nil {
 							continue

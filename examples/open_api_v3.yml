@@ -119,7 +119,7 @@ paths:
           examples:
             NEWS_LIST_IS_EXITS:
               value: [11876]
-            NEWS_NOT_EXISTS:
+            NEWS_LIST_NOT_EXISTS:
               value: [100500]
         - name: filter.user_ids
           in: query
@@ -133,7 +133,7 @@ paths:
           examples:
             NEWS_LIST_IS_EXITS:
               value: [ 1, 2 ]
-            NEWS_NOT_EXISTS:
+            NEWS_LIST_NOT_EXISTS:
               value: [ 100500 ]
         - name: filter.status
           in: query
@@ -152,7 +152,7 @@ paths:
           examples:
             NEWS_LIST_IS_EXITS:
               value: [ NEWS_STATUS_SUGGESTED, NEWS_STATUS_ACTIVE ]
-            NEWS_NOT_EXISTS:
+            NEWS_LIST_NOT_EXISTS:
               value: [ NEWS_STATUS_UNSPECIFIED ]
         - name: filter.type
           in: query
@@ -230,7 +230,7 @@ paths:
                     partner:
                       id: 1
                       name: ''
-                    content: Контент
+                    content: Content https://st-erp.ogon.ru/news/edit/11876
                     hash: 480107c7e081f07e1a616b3e98a1bc89
                     preview_img: 05d69995e3bdf2949c480d5a2464dcbf
                     tags: [ ]
@@ -300,6 +300,7 @@ paths:
                   value:
                     code: 5
                     message: api.row_not_found_error
+                    details: {}
         "500":
           description: Internal error
           content:

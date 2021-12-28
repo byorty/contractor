@@ -2,9 +2,12 @@ package common
 
 import (
 	"context"
-	"errors"
-	"fmt"
+	"github.com/pkg/errors"
 	"go.uber.org/fx"
+)
+
+var (
+	ErrUnsupportedWorkerKind = errors.New("unsupported worker type")
 )
 
 type WorkerKind string
@@ -40,7 +43,7 @@ type WorkerContainer map[WorkerKind]Worker
 func (c WorkerContainer) Get(kind WorkerKind) (Worker, error) {
 	worker, ok := c[kind]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("worket is not found by kind=%s", kind))
+		return nil, errors.Wrap(ErrUnsupportedWorkerKind, string(kind))
 	}
 
 	return worker, nil

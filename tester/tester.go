@@ -1,10 +1,11 @@
 package tester
 
 import (
+	"bytes"
 	"context"
-	"encoding/json"
-	"encoding/xml"
+	"fmt"
 	"github.com/byorty/contractor/common"
+	"github.com/google/go-cmp/cmp"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -16,74 +17,53 @@ const (
 
 type Tester interface {
 	Configure(ctx context.Context, containers common.TemplateContainer)
-	Test() error
+	Test() (TestSuiteContainer, error)
 }
 
-func NewFxTester() Tester {
+func NewFxTester(
+	mediaConverter common.MediaConverter,
+) Tester {
 	return &tester{
-		suites: make([]TestSuite, 0),
-		unmarshalers: map[string]func(buf []byte) (map[string]interface{}, error){
-			"application/json": func(buf []byte) (map[string]interface{}, error) {
-				obj := make(map[string]interface{})
-				err := json.Unmarshal(buf, &obj)
-				if err != nil {
-					return nil, err
-				}
-
-				return obj, nil
-			},
-			"application/xml": func(buf []byte) (map[string]interface{}, error) {
-				obj := make(map[string]interface{})
-				err := xml.Unmarshal(buf, &obj)
-				if err != nil {
-					return nil, err
-				}
-
-				return obj, nil
-			},
-		},
+		suites:         make([]TestSuite, 0),
+		mediaConverter: mediaConverter,
 	}
 }
 
 type tester struct {
-	suites       []TestSuite
-	unmarshalers map[string]func(buf []byte) (map[string]interface{}, error)
+	suites         TestSuiteContainer
+	mediaConverter common.MediaConverter
 }
 
-func (t *tester) Configure(ctx context.Context, containers common.TemplateContainer) {
-	for suiteName, container := range containers {
+func (t *tester) Configure(ctx context.Context, container common.TemplateContainer) {
+	for templateName, template := range container {
 		suite := TestSuite{
-			Name:      suiteName,
-			TestCases: make([]TestCase, 0),
+			Name:      template.UID,
+			TestCases: make([]*TestCase, 0),
 		}
 
-		for caseName, template := range container {
-			for statusCode, expectedResponseByContentType := range template.ExpectedResponses {
-				for contentType, example := range expectedResponseByContentType {
-					tc := TestCase{
-						Name:   caseName,
-						Status: TestCaseStatusUndefined,
-						ExpectedResult: TestCaseResult{
-							StatusCode: statusCode,
-							Headers: map[string]string{
-								headerContentType: contentType,
-							},
-							Body: example,
+		for statusCode, expectedResponseByMediaType := range template.ExpectedResponses {
+			for mediaTypeName, example := range expectedResponseByMediaType {
+				tc := &TestCase{
+					Name:     templateName,
+					Status:   TestCaseStatusUndefined,
+					Template: template,
+					ExpectedResult: TestCaseResult{
+						StatusCode: statusCode,
+						Headers: map[string]string{
+							headerContentType: mediaTypeName,
 						},
-					}
-
-					req, err := http.NewRequest(template.Method, template.GetUrl(), nil)
-					if err == nil {
-						req.Header.Add(headerContentType, contentType)
-						req.URL.RawQuery = template.GetQueryParams().Encode()
-						tc.request = req
-					} else {
-						tc.Err = err
-						tc.Status = TestCaseStatusFailure
-					}
-
-					suite.TestCases = append(suite.TestCases, tc)
+						Body: example,
+					},
 				}
+
+				req, err := t.createRequest(mediaTypeName, template, example)
+				if err == nil {
+					tc.request = req
+				} else {
+					tc.Err = err
+				}
+
+				suite.TestCases = append(suite.TestCases, tc)
 			}
 		}
 
@@ -91,31 +71,51 @@ func (t *tester) Configure(ctx context.Context, containers common.TemplateContai
 	}
 }
 
-func (t *tester) Test() error {
+func (t *tester) createRequest(mediaTypeName string, template common.Template, example interface{}) (*http.Request, error) {
+	buf, err := t.mediaConverter.Marshal(common.MediaType(mediaTypeName), example)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(template.Method, template.GetUrl(), bytes.NewReader(buf))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add(headerContentType, mediaTypeName)
+	req.URL.RawQuery = template.GetQueryParams().Encode()
+	return req, nil
+}
+
+func (t *tester) Test() (TestSuiteContainer, error) {
 	client := http.Client{
 		Timeout: time.Second * 5,
 	}
 
 	for _, suite := range t.suites {
 		for _, testCase := range suite.TestCases {
-			//if testCase.Status == TestCaseStatusFailure {
-			//	continue
-			//}
-
-			actualResult, err := t.runTestCase(client, testCase)
-			if err == nil {
-				testCase.ActualResult = actualResult
-			} else {
-				testCase.Status = TestCaseStatusFailure
-				testCase.Err = err
-			}
+			t.runTestCase(client, testCase)
 		}
 	}
 
-	return nil
+	return t.suites, nil
 }
 
-func (t *tester) runTestCase(client http.Client, testCase TestCase) (*TestCaseResult, error) {
+func (t *tester) runTestCase(client http.Client, testCase *TestCase) {
+	defer testCase.Assert()
+	if testCase.Err != nil {
+		return
+	}
+
+	actualResult, err := t.sendRequest(client, testCase)
+	if err == nil {
+		testCase.ActualResult = actualResult
+	} else {
+		testCase.Err = err
+	}
+}
+
+func (t *tester) sendRequest(client http.Client, testCase *TestCase) (*TestCaseResult, error) {
 	resp, err := client.Do(testCase.request)
 	if err != nil {
 		return nil, err
@@ -127,13 +127,9 @@ func (t *tester) runTestCase(client http.Client, testCase TestCase) (*TestCaseRe
 	}
 
 	defer resp.Body.Close()
-	var body interface{}
-	unmarshaler, ok := t.unmarshalers[resp.Header.Get(headerContentType)]
-	if ok {
-		body, err = unmarshaler(buf)
-		if err != nil {
-			return nil, err
-		}
+	body, err := t.mediaConverter.Unmarshal(common.MediaType(resp.Header.Get(headerContentType)), buf)
+	if err != nil {
+		return nil, err
 	}
 
 	actualResult := &TestCaseResult{
@@ -149,9 +145,11 @@ func (t *tester) runTestCase(client http.Client, testCase TestCase) (*TestCaseRe
 	return actualResult, nil
 }
 
+type TestSuiteContainer []TestSuite
+
 type TestSuite struct {
 	Name      string
-	TestCases []TestCase
+	TestCases []*TestCase
 }
 
 type TestCase struct {
@@ -160,8 +158,79 @@ type TestCase struct {
 	Err            error
 	request        *http.Request
 	response       *http.Response
+	Template       common.Template
 	ExpectedResult TestCaseResult
 	ActualResult   *TestCaseResult
+	path           cmp.Path
+	assertions     []TestCaseAssertion
+}
+
+func (t *TestCase) PushStep(ps cmp.PathStep) {
+	t.path = append(t.path, ps)
+}
+
+func (t *TestCase) Report(rs cmp.Result) {
+	if !rs.Equal() {
+		vx, vy := t.path.Last().Values()
+		t.assertions = append(t.assertions, TestCaseAssertion{
+			Name:     fmt.Sprintf("Property %s value is not equal", t.path.GoString()),
+			Expected: fmt.Sprint(vx),
+			Actual:   fmt.Sprint(vy),
+		})
+	}
+}
+
+func (t *TestCase) PopStep() {
+	t.path = t.path[:len(t.path)-1]
+}
+
+func (t *TestCase) Assert() {
+	t.assertions = make([]TestCaseAssertion, 0)
+	defer func() {
+		if len(t.assertions) == 0 {
+			t.Status = TestCaseStatusSuccess
+		} else {
+			t.Status = TestCaseStatusFailure
+		}
+	}()
+	if t.Err != nil {
+		t.assertions = append(t.assertions, TestCaseAssertion{
+			Name:     "Error",
+			Expected: "nil",
+			Actual:   t.Err.Error(),
+		})
+
+		return
+	}
+
+	if t.ExpectedResult.StatusCode != t.ActualResult.StatusCode {
+		t.assertions = append(t.assertions, TestCaseAssertion{
+			Name:     "Status Code",
+			Expected: fmt.Sprint(t.ExpectedResult.StatusCode),
+			Actual:   fmt.Sprint(t.ActualResult.StatusCode),
+		})
+	}
+
+	for expectedHeaderName, expectedHeaderValue := range t.ExpectedResult.Headers {
+		actualHeaderValue, ok := t.ActualResult.Headers[expectedHeaderName]
+		if ok && expectedHeaderValue == actualHeaderValue {
+			continue
+		}
+
+		t.assertions = append(t.assertions, TestCaseAssertion{
+			Name:     fmt.Sprintf("Header %s", expectedHeaderName),
+			Expected: expectedHeaderValue,
+			Actual:   actualHeaderValue,
+		})
+	}
+
+	cmp.Equal(t.ExpectedResult.Body, t.ActualResult.Body, cmp.Reporter(t))
+
+	return
+}
+
+func (t *TestCase) GetAssertions() []TestCaseAssertion {
+	return t.assertions
 }
 
 type TestCaseStatus int
@@ -176,4 +245,10 @@ type TestCaseResult struct {
 	StatusCode int
 	Headers    map[string]string
 	Body       interface{}
+}
+
+type TestCaseAssertion struct {
+	Name     string
+	Expected string
+	Actual   string
 }
