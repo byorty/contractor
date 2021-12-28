@@ -22,3 +22,6 @@ generate:
 
 run-tester:
 	@$(GORUN) $(CONTRACTOR) -m test -s $(EXAMPLES_DIR)/open_api_v3.yml -b $(URL_BASE)
+
+run-mocker:
+	@$(GORUN) $(CONTRACTOR) -m mock -s $(EXAMPLES_DIR)/open_api_v3.yml -b $(URL_BASE)

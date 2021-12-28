@@ -19,12 +19,15 @@ type Template struct {
 }
 
 func (t Template) GetUrl() string {
-	u := fmt.Sprintf("%s%s", t.BaseUrl, t.Path)
-	for paramName, paramValue := range t.PathParams {
-		u = strings.ReplaceAll(u, fmt.Sprintf("{%s}", paramName), fmt.Sprint(paramValue))
-	}
+	return fmt.Sprintf("%s%s", t.BaseUrl, t.GetPath())
+}
 
-	return u
+func (t Template) GetPath() string {
+	path := t.Path
+	for paramName, paramValue := range t.PathParams {
+		path = strings.ReplaceAll(path, fmt.Sprintf("{%s}", paramName), fmt.Sprint(paramValue))
+	}
+	return path
 }
 
 func (t Template) GetQueryParams() url.Values {

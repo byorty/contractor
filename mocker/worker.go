@@ -1,4 +1,4 @@
-package tester
+package mocker
 
 import (
 	"context"
@@ -9,27 +9,27 @@ import (
 
 type WorkerIn struct {
 	fx.In
+	Ctx       context.Context
 	Converter converter.Converter
-	Tester    Tester
-	Reporters []Reporter `group:"reporter"`
+	Mocker    Mocker
 }
 
 func NewFxWorker(in WorkerIn) common.Worker {
 	return &worker{
+		ctx:       in.Ctx,
 		converter: in.Converter,
-		tester:    in.Tester,
-		reporters: in.Reporters,
+		mocker:    in.Mocker,
 	}
 }
 
 type worker struct {
+	ctx       context.Context
 	converter converter.Converter
-	tester    Tester
-	reporters []Reporter
+	mocker    Mocker
 }
 
 func (w *worker) GetType() common.WorkerKind {
-	return common.WorkerKindTest
+	return common.WorkerKindMock
 }
 
 func (w *worker) Configure(ctx context.Context, arguments common.Arguments) error {
@@ -38,23 +38,9 @@ func (w *worker) Configure(ctx context.Context, arguments common.Arguments) erro
 		return err
 	}
 
-	w.tester.Configure(ctx, templateContainers)
-
-	return nil
+	return w.mocker.Configure(ctx, templateContainers)
 }
 
 func (w *worker) Run() error {
-	container, err := w.tester.Test()
-	if err != nil {
-		return err
-	}
-
-	for _, reporter := range w.reporters {
-		err := reporter.Report(container)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return w.mocker.Run()
 }

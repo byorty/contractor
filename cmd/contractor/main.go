@@ -5,6 +5,7 @@ import (
 	"github.com/byorty/contractor/common"
 	"github.com/byorty/contractor/converter"
 	"github.com/byorty/contractor/logger"
+	"github.com/byorty/contractor/mocker"
 	"github.com/byorty/contractor/tester"
 )
 
@@ -14,13 +15,14 @@ func main() {
 		converter.Constructors,
 		logger.Constructors,
 		tester.Constructors,
+		mocker.Constructors,
 	)
 	app.Run(func(
 		ctx context.Context,
 		args common.Arguments,
 		container common.WorkerContainer,
 	) error {
-		worker, err := container.Get(common.WorkerKind(args.Mode))
+		worker, err := container.Get(args.Mode)
 		if err != nil {
 			return err
 		}

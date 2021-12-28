@@ -8,7 +8,6 @@ require (
 	github.com/google/go-cmp v0.5.6
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/pkg/errors v0.9.1
-	github.com/r3labs/diff/v2 v2.14.5
 	go.uber.org/fx v1.16.0
 )
 
@@ -17,7 +16,9 @@ require (
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.5 // indirect
 	github.com/golang/protobuf v1.3.1 // indirect
+	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e // indirect
+	github.com/r3labs/diff/v2 v2.14.5 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	go.uber.org/atomic v1.6.0 // indirect
