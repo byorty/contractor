@@ -7,18 +7,18 @@ import (
 )
 
 var (
-	ErrUnsupportedWorkerKind = errors.New("unsupported worker type")
+	ErrUnsupportedWorkerType = errors.New("unsupported worker type")
 )
 
-type WorkerKind string
+type WorkerType string
 
 const (
-	WorkerKindMock WorkerKind = "mock"
-	WorkerKindTest WorkerKind = "test"
+	WorkerTypeMock WorkerType = "mock"
+	WorkerTypeTest WorkerType = "test"
 )
 
 type Worker interface {
-	GetType() WorkerKind
+	GetType() WorkerType
 	Configure(ctx context.Context, arguments Arguments) error
 	Run() error
 }
@@ -38,12 +38,12 @@ func NewFxWorkerContainer(in WorkerContainerFxIn) WorkerContainer {
 	return container
 }
 
-type WorkerContainer map[WorkerKind]Worker
+type WorkerContainer map[WorkerType]Worker
 
-func (c WorkerContainer) Get(kind WorkerKind) (Worker, error) {
-	worker, ok := c[kind]
+func (c WorkerContainer) Get(workerType WorkerType) (Worker, error) {
+	worker, ok := c[workerType]
 	if !ok {
-		return nil, errors.Wrap(ErrUnsupportedWorkerKind, string(kind))
+		return nil, errors.Wrap(ErrUnsupportedWorkerType, string(workerType))
 	}
 
 	return worker, nil

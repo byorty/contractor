@@ -8,6 +8,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"io/ioutil"
 	"net/http"
+	"reflect"
+	"strings"
 	"time"
 )
 
@@ -56,7 +58,7 @@ func (t *tester) Configure(ctx context.Context, container common.TemplateContain
 					},
 				}
 
-				req, err := t.createRequest(mediaTypeName, template, example)
+				req, err := t.createRequest(mediaTypeName, template)
 				if err == nil {
 					tc.request = req
 				} else {
@@ -71,8 +73,8 @@ func (t *tester) Configure(ctx context.Context, container common.TemplateContain
 	}
 }
 
-func (t *tester) createRequest(mediaTypeName string, template common.Template, example interface{}) (*http.Request, error) {
-	buf, err := t.mediaConverter.Marshal(common.MediaType(mediaTypeName), example)
+func (t *tester) createRequest(mediaTypeName string, template *common.Template) (*http.Request, error) {
+	buf, err := t.mediaConverter.Marshal(common.MediaType(mediaTypeName), template.Bodies[mediaTypeName])
 	if err != nil {
 		return nil, err
 	}
@@ -83,13 +85,17 @@ func (t *tester) createRequest(mediaTypeName string, template common.Template, e
 	}
 
 	req.Header.Add(headerContentType, mediaTypeName)
+	for headerName, headerValue := range template.HeaderParams {
+		req.Header.Add(headerName, fmt.Sprint(headerValue))
+	}
+
 	req.URL.RawQuery = template.GetQueryParams().Encode()
 	return req, nil
 }
 
 func (t *tester) Test() (TestSuiteContainer, error) {
-	client := http.Client{
-		Timeout: time.Second * 5,
+	client := &http.Client{
+		Timeout: time.Second * 15,
 	}
 
 	for _, suite := range t.suites {
@@ -101,7 +107,7 @@ func (t *tester) Test() (TestSuiteContainer, error) {
 	return t.suites, nil
 }
 
-func (t *tester) runTestCase(client http.Client, testCase *TestCase) {
+func (t *tester) runTestCase(client *http.Client, testCase *TestCase) {
 	defer testCase.Assert()
 	if testCase.Err != nil {
 		return
@@ -115,18 +121,18 @@ func (t *tester) runTestCase(client http.Client, testCase *TestCase) {
 	}
 }
 
-func (t *tester) sendRequest(client http.Client, testCase *TestCase) (*TestCaseResult, error) {
+func (t *tester) sendRequest(client *http.Client, testCase *TestCase) (*TestCaseResult, error) {
 	resp, err := client.Do(testCase.request)
 	if err != nil {
 		return nil, err
 	}
 
+	defer resp.Body.Close()
 	buf, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	defer resp.Body.Close()
 	body, err := t.mediaConverter.Unmarshal(common.MediaType(resp.Header.Get(headerContentType)), buf)
 	if err != nil {
 		return nil, err
@@ -158,7 +164,7 @@ type TestCase struct {
 	Err            error
 	request        *http.Request
 	response       *http.Response
-	Template       common.Template
+	Template       *common.Template
 	ExpectedResult TestCaseResult
 	ActualResult   *TestCaseResult
 	path           cmp.Path
@@ -171,11 +177,21 @@ func (t *TestCase) PushStep(ps cmp.PathStep) {
 
 func (t *TestCase) Report(rs cmp.Result) {
 	if !rs.Equal() {
-		vx, vy := t.path.Last().Values()
+		path := make([]string, 0)
+		for _, p := range t.path {
+			switch v := p.(type) {
+			case cmp.SliceIndex:
+				path = append(path, fmt.Sprint(v.Key()))
+			case cmp.MapIndex:
+				path = append(path, v.Key().String())
+			}
+		}
+
+		expectedValue, actualValue := t.path.Last().Values()
 		t.assertions = append(t.assertions, TestCaseAssertion{
-			Name:     fmt.Sprintf("Property %s value is not equal", t.path.GoString()),
-			Expected: fmt.Sprint(vx),
-			Actual:   fmt.Sprint(vy),
+			Name:     fmt.Sprintf("Property '%s' value is not equal", strings.Join(path, ".")),
+			Expected: t.valueToString(expectedValue),
+			Actual:   t.valueToString(actualValue),
 		})
 	}
 }
@@ -231,6 +247,14 @@ func (t *TestCase) Assert() {
 
 func (t *TestCase) GetAssertions() []TestCaseAssertion {
 	return t.assertions
+}
+
+func (t *TestCase) valueToString(val reflect.Value) string {
+	if val.IsValid() {
+		return fmt.Sprint(val)
+	} else {
+		return "nil"
+	}
 }
 
 type TestCaseStatus int

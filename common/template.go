@@ -16,6 +16,7 @@ type Template struct {
 	QueryParams       map[string]interface{}
 	CookieParams      map[string]interface{}
 	ExpectedResponses map[int]map[string]interface{}
+	Bodies            map[string]interface{}
 }
 
 func (t Template) GetUrl() string {
@@ -46,4 +47,25 @@ func (t Template) GetQueryParams() url.Values {
 	return values
 }
 
-type TemplateContainer map[string]Template
+type TemplateContainer map[string]*Template
+
+func (c TemplateContainer) Create(exampleName, baseUrl, pathName, httpMethod string) *Template {
+	template, ok := c[exampleName]
+	if !ok {
+		template = &Template{
+			BaseUrl:           baseUrl,
+			Path:              pathName,
+			Method:            httpMethod,
+			PathParams:        make(map[string]interface{}),
+			QueryParams:       make(map[string]interface{}),
+			HeaderParams:      make(map[string]interface{}),
+			CookieParams:      make(map[string]interface{}),
+			ExpectedResponses: make(map[int]map[string]interface{}),
+			Bodies:            make(map[string]interface{}),
+		}
+
+		c[exampleName] = template
+	}
+
+	return template
+}

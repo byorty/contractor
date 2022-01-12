@@ -9,31 +9,36 @@ import (
 
 type WorkerIn struct {
 	fx.In
-	Ctx       context.Context
-	Converter converter.Converter
-	Mocker    Mocker
+	Ctx                context.Context
+	ConverterContainer converter.Container
+	Mocker             Mocker
 }
 
 func NewFxWorker(in WorkerIn) common.Worker {
 	return &worker{
-		ctx:       in.Ctx,
-		converter: in.Converter,
-		mocker:    in.Mocker,
+		ctx:                in.Ctx,
+		converterContainer: in.ConverterContainer,
+		mocker:             in.Mocker,
 	}
 }
 
 type worker struct {
-	ctx       context.Context
-	converter converter.Converter
-	mocker    Mocker
+	ctx                context.Context
+	converterContainer converter.Container
+	mocker             Mocker
 }
 
-func (w *worker) GetType() common.WorkerKind {
-	return common.WorkerKindMock
+func (w *worker) GetType() common.WorkerType {
+	return common.WorkerTypeMock
 }
 
 func (w *worker) Configure(ctx context.Context, arguments common.Arguments) error {
-	templateContainers, err := w.converter.Convert(ctx, arguments)
+	crt, err := w.converterContainer.Get(arguments.SpecType)
+	if err != nil {
+		return err
+	}
+
+	templateContainers, err := crt.Convert(ctx, arguments)
 	if err != nil {
 		return err
 	}

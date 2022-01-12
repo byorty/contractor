@@ -3,6 +3,7 @@ package tester
 import (
 	"fmt"
 	"github.com/byorty/contractor/logger"
+	"strings"
 )
 
 type Reporter interface {
@@ -26,8 +27,9 @@ func (r *stdoutReporter) Report(container TestSuiteContainer) error {
 	for _, testSuite := range container {
 		for _, testCase := range testSuite.TestCases {
 			r.logger.PrintGroup("Test Case: %s", testCase.Name)
-			r.logger.PrintSubGroup("Status Code: %d", testCase.ExpectedResult.StatusCode)
 			r.logger.PrintSubGroup("Path: %s", testCase.Template.Path)
+			r.logger.PrintSubGroup("Method: %s", strings.ToUpper(testCase.Template.Method))
+			r.logger.PrintSubGroup("Status Code: %d", testCase.ExpectedResult.StatusCode)
 			r.logger.PrintParameters("Header Parameters", testCase.Template.HeaderParams)
 			r.logger.PrintParameters("Path Parameters", testCase.Template.PathParams)
 			r.logger.PrintParameters("Query Parameters", testCase.Template.QueryParams)
