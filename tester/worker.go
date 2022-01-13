@@ -4,7 +4,12 @@ import (
 	"context"
 	"github.com/byorty/contractor/common"
 	"github.com/byorty/contractor/converter"
+	"github.com/pkg/errors"
 	"go.uber.org/fx"
+)
+
+var (
+	ErrTestHasFailureStatus = errors.New("test has failure")
 )
 
 type WorkerIn struct {
@@ -59,6 +64,10 @@ func (w *worker) Run() error {
 		if err != nil {
 			return err
 		}
+	}
+
+	if container.HasError() {
+		return ErrTestHasFailureStatus
 	}
 
 	return nil

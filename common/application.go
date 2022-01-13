@@ -5,8 +5,6 @@ import (
 	"github.com/jessevdk/go-flags"
 	"go.uber.org/fx"
 	"os"
-	"os/signal"
-	"syscall"
 )
 
 type Application struct {
@@ -59,23 +57,10 @@ func (a *Application) Run(invoker interface{}) {
 	)
 	a.fxApp = fx.New(a.options...)
 
-	go a.listenSignals()
-
 	startCtx, cancel := context.WithTimeout(a.ctx, fx.DefaultTimeout)
 	defer cancel()
 
 	if err = a.fxApp.Start(startCtx); err != nil {
-		panic(err)
+		os.Exit(1)
 	}
-}
-
-func (a *Application) listenSignals() {
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-	//for sig := range signals {
-	//	a.logger.Infof("income signal %s", sig)
-	//	a.Stop()
-	//	a.cancel()
-	//	return
-	//}
 }

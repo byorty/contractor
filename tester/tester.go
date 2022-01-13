@@ -153,6 +153,18 @@ func (t *tester) sendRequest(client *http.Client, testCase *TestCase) (*TestCase
 
 type TestSuiteContainer []TestSuite
 
+func (c TestSuiteContainer) HasError() bool {
+	for _, suite := range c {
+		for _, testCase := range suite.TestCases {
+			if testCase.Status == TestCaseStatusFailure {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 type TestSuite struct {
 	Name      string
 	TestCases []*TestCase
