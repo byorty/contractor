@@ -5,14 +5,20 @@ on:
     branches: [master]
 
 jobs:
-  macos-build:
-    runs-on: macos-11
+  releases-matrix:
+    name: Release Go Binary
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [darwin]
+        goarch: [arm64]
     steps:
-      - name: Install Go
-        uses: actions/setup-go@v2
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Install dependencies
-        run: cp -f .env.dist .env && make install
-      - name: Build contractor
-        run: make build
+      - uses: actions/checkout@v2
+      - uses: wangyoucao577/go-release-action@v1.22
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          project_path: "./cmd/contractor"
+          binary_name: "contractor"
+      - run: ls -la $(pwd)
