@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	ErrTestHasFailureStatus = errors.New("test has failure")
+	ErrTestHasFailureStatus = errors.New("Test Is Failed")
 )
 
 type WorkerIn struct {
@@ -48,7 +48,7 @@ func (w *worker) Configure(ctx context.Context, arguments common.Arguments) erro
 		return err
 	}
 
-	w.tester.Configure(ctx, templateContainers)
+	w.tester.Configure(ctx, arguments, templateContainers)
 
 	return nil
 }

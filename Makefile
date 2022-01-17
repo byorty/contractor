@@ -24,11 +24,11 @@ run-tester:
 	@$(GORUN) $(CONTRACTOR) -m test \
 							-s $(EXAMPLES_DIR)/swagger.yml \
 							-b $(URL_BASE) \
-							-t $(SPEC_TYPE) \
+							-f $(SPEC_TYPE) \
 							-v "VAR_AUTHORIZATION:$(VAR_AUTHORIZATION)"
 
 run-mocker:
 	$(GORUN) $(CONTRACTOR) -m mock \
 							-s $(EXAMPLES_DIR)/open_api_v3.yml \
 							-b $(URL_BASE) \
-							-t $(SPEC_TYPE)
+							-f $(SPEC_TYPE)

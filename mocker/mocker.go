@@ -35,7 +35,7 @@ func (m *mocker) Configure(ctx context.Context, containers common.TemplateContai
 				route := m.router.Methods(template.Method)
 				route.Path(template.GetPath())
 
-				route.Headers("Content-Type", mediaType)
+				route.Headers(common.HeaderContentType, mediaType)
 				for headerName, headerValue := range template.HeaderParams {
 					route.Headers(headerName, fmt.Sprint(headerValue))
 				}
@@ -50,7 +50,7 @@ func (m *mocker) Configure(ctx context.Context, containers common.TemplateContai
 				}
 
 				route.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-					writer.Header().Add("Content-Type", mediaType)
+					writer.Header().Add(common.HeaderContentType, mediaType)
 					writer.WriteHeader(statusCode)
 					writer.Write(buf)
 				})

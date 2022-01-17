@@ -17,6 +17,7 @@ type Template struct {
 	CookieParams      map[string]interface{}
 	ExpectedResponses map[int]map[string]interface{}
 	Bodies            map[string]interface{}
+	Tags              []string
 }
 
 func (t Template) GetUrl() string {
@@ -45,6 +46,22 @@ func (t Template) GetQueryParams() url.Values {
 	}
 
 	return values
+}
+
+func (t *Template) ContainsTags(expectedTags []string) bool {
+	if len(expectedTags) == 0 {
+		return true
+	}
+
+	for _, expectedTag := range expectedTags {
+		for _, actualTag := range t.Tags {
+			if expectedTag == actualTag {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 type TemplateContainer map[string]*Template

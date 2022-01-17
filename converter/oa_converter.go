@@ -15,6 +15,11 @@ import (
 	"strings"
 )
 
+const (
+	xExamples = "x-examples"
+	xTagsName = "x-tags"
+)
+
 type XOperationRequestExample struct {
 	Headers    map[string]interface{} `json:"headers"`
 	Parameters map[string]interface{} `json:"parameters"`
@@ -25,23 +30,19 @@ type XOperationResponseExample struct {
 	Body       map[string]interface{} `json:"body"`
 }
 
-type xOperationExample struct {
+type XOperationExample struct {
 	Request  XOperationRequestExample  `json:"request"`
 	Response XOperationResponseExample `json:"response"`
+	Tags     []string                  `json:"tags"`
 }
 
-type xOperationExamples map[string]xOperationExample
+type XOperationExamples map[string]XOperationExample
 
 type oaConverter struct {
 	container common.TemplateContainer
 }
 
 func (c *oaConverter) convert(ctx context.Context, arguments common.Arguments, spec *openapi3.T) (common.TemplateContainer, error) {
-	//err := spec.Validate(ctx)
-	//if err != nil {
-	//	return nil, err
-	//}
-
 	for pathName, pathItem := range spec.Paths {
 		for httpMethod, operation := range pathItem.Operations() {
 			c.processOperation(arguments, pathName, httpMethod, operation)
@@ -83,6 +84,7 @@ func (c *oaConverter) processOperation(arguments common.Arguments, pathName, htt
 			}
 
 			for exampleName, exampleRef := range mediaType.Examples {
+				example := exampleRef.Value
 				template := c.container[exampleName]
 				if template == nil {
 					continue
@@ -93,19 +95,24 @@ func (c *oaConverter) processOperation(arguments common.Arguments, pathName, htt
 					template.ExpectedResponses[statusCode] = make(map[string]interface{})
 				}
 
-				template.ExpectedResponses[statusCode][mediaTypeName] = exampleRef.Value.Value
+				template.ExpectedResponses[statusCode][mediaTypeName] = example.Value
+				if example.Extensions != nil {
+					if tags, ok := example.Extensions[xTagsName]; ok {
+						template.Tags = tags.([]string)
+					}
+				}
 			}
 		}
 	}
 }
 
 func (c *oaConverter) processXOperationExamples(arguments common.Arguments, operation *openapi3.Operation) {
-	examplesFilename, ok := operation.Extensions["x-examples"]
+	examplesFilename, ok := operation.Extensions[xExamples]
 	if !ok {
 		return
 	}
 
-	var operationExamples xOperationExamples
+	var operationExamples XOperationExamples
 	err := c.readAndUnmarshal(
 		arguments,
 		filepath.Join(
@@ -191,6 +198,11 @@ func (c *oaConverter) processXOperationExamples(arguments common.Arguments, oper
 				mediaType.Examples[exampleName] = &openapi3.ExampleRef{
 					Value: &openapi3.Example{
 						Value: example.Response.Body,
+						ExtensionProps: openapi3.ExtensionProps{
+							Extensions: map[string]interface{}{
+								xTagsName: example.Tags,
+							},
+						},
 					},
 				}
 			}

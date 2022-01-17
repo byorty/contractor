@@ -18,7 +18,7 @@ const (
 )
 
 type Tester interface {
-	Configure(ctx context.Context, containers common.TemplateContainer)
+	Configure(ctx context.Context, arguments common.Arguments, containers common.TemplateContainer)
 	Test() (TestSuiteContainer, error)
 }
 
@@ -36,8 +36,12 @@ type tester struct {
 	mediaConverter common.MediaConverter
 }
 
-func (t *tester) Configure(ctx context.Context, container common.TemplateContainer) {
+func (t *tester) Configure(ctx context.Context, arguments common.Arguments, container common.TemplateContainer) {
 	for templateName, template := range container {
+		if !template.ContainsTags(arguments.Tags) {
+			continue
+		}
+
 		suite := TestSuite{
 			Name:      template.UID,
 			TestCases: make([]*TestCase, 0),
@@ -52,7 +56,7 @@ func (t *tester) Configure(ctx context.Context, container common.TemplateContain
 					ExpectedResult: TestCaseResult{
 						StatusCode: statusCode,
 						Headers: map[string]string{
-							headerContentType: mediaTypeName,
+							common.HeaderContentType: mediaTypeName,
 						},
 						Body: example,
 					},
@@ -84,7 +88,7 @@ func (t *tester) createRequest(mediaTypeName string, template *common.Template) 
 		return nil, err
 	}
 
-	req.Header.Add(headerContentType, mediaTypeName)
+	req.Header.Add(common.HeaderContentType, mediaTypeName)
 	for headerName, headerValue := range template.HeaderParams {
 		req.Header.Add(headerName, fmt.Sprint(headerValue))
 	}
@@ -133,7 +137,7 @@ func (t *tester) sendRequest(client *http.Client, testCase *TestCase) (*TestCase
 		return nil, err
 	}
 
-	body, err := t.mediaConverter.Unmarshal(common.MediaType(resp.Header.Get(headerContentType)), buf)
+	body, err := t.mediaConverter.Unmarshal(common.MediaType(resp.Header.Get(common.HeaderContentType)), buf)
 	if err != nil {
 		return nil, err
 	}
