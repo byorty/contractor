@@ -10,7 +10,6 @@ EXAMPLES_DIR=$(PROJECT_DIR)/examples
 CONTRACTOR=$(PROJECT_DIR)/cmd/contractor/main.go
 
 install:
-	cp -f $(PROJECT_DIR)/.env.dist $(PROJECT_DIR)/.env
 	find $(shell pwd) \( -regex '.*mock_.*' -and ! -path "*/vendor/*" \) -exec rm {} \;
 	rm -rf $(PROJECT_DIR)/vendor
 	GOPROXY=direct GOSUMDB=off go mod vendor

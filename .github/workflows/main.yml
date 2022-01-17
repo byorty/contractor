@@ -15,4 +15,4 @@ jobs:
       - name: Install dependencies
         run: make install
       - name: Build contractor
-        run: make build
+        run: cp -f .env.dist .env && make build
