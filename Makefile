@@ -16,6 +16,9 @@ install:
 
 build:
 	go install ./...
+	echo $(GOPATH)
+	echo $(GOBIN)
+	ls -la $(GOBIN)
 
 test:
 	$(GOTEST) -v ./...
