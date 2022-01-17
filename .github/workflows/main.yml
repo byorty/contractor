@@ -13,6 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Install dependencies
-        run: make install
+        run: cp -f .env.dist .env && make install
       - name: Build contractor
-        run: cp -f .env.dist .env && make build
+        run: make build
