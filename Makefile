@@ -14,6 +14,9 @@ install:
 	rm -rf $(PROJECT_DIR)/vendor
 	GOPROXY=direct GOSUMDB=off go mod vendor
 
+build:
+	go install ./...
+
 test:
 	$(GOTEST) -v ./...
 

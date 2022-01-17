@@ -13,10 +13,6 @@ import (
 	"time"
 )
 
-const (
-	headerContentType = "Content-Type"
-)
-
 type Tester interface {
 	Configure(ctx context.Context, arguments common.Arguments, containers common.TemplateContainer)
 	Test() (TestSuiteContainer, error)
