@@ -25,4 +25,3 @@ jobs:
           goarch: ${{ matrix.goarch }}
           project_path: "./cmd/contractor"
           binary_name: "contractor"
-      - run: ls -la $(pwd)
