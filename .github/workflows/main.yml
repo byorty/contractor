@@ -37,3 +37,4 @@ jobs:
           token: ${{ secrets.TOKEN }}
           org: byorty
           tap: byorty/${{ env.APPNAME }}
+          formula: ${{ env.APPNAME }}
