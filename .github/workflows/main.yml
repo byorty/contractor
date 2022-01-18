@@ -24,28 +24,16 @@ jobs:
         run: |
           cp -f .env.dist .env
           make install
-      - uses: wangyoucao577/go-release-action@v1.22
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2
         with:
-          github_token: ${{ secrets.TOKEN }}
-          goos: ${{ matrix.goos }}
-          goarch: ${{ matrix.goarch }}
-          project_path: ./cmd/${{ env.APPNAME }}
-          binary_name: ${{ env.APPNAME }}
-      - name: Update Homebrew formula
-        uses: toolmantim/tap-release@1.6
+          distribution: goreleaser
+          version: latest
+          args: release --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload assets
+        uses: actions/upload-artifact@v2
         with:
-          url: https://github.com/byorty/contractor/releases/download/${{ env.GITHUB_REF }}/contractor-${{ env.GITHUB_REF }}-darwin-arm64.tar.gz
-          tap: byorty/homebrew-contractor/contractor.rb
-          template: |
-            class Contractor < Formula
-                homepage "https://github.com/byorty/contractor"
-                desc "Reads the description document and generates test cases that will ensure that your application is compliant with its description"
-                version  "$STABLE_VERSION"
-                url      "$STABLE_ASSET_URL"
-                sha256   "$STABLE_ASSET_SHA256"
-                license "MIT"
-                
-                def install
-                bin.install "contractor"
-                end
-            end
+          name: myapp
+          path: dist/*
