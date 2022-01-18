@@ -14,7 +14,7 @@ jobs:
         goos: [darwin]
         goarch: [arm64]
     env:
-      env.APPNAME: contractor
+      APPNAME: contractor
     steps:
       - uses: actions/checkout@v2
       - uses: ncipollo/release-action@v1
@@ -38,5 +38,5 @@ jobs:
           org: byorty
           tap: byorty/${{ env.APPNAME }}
           formula: ${{ env.APPNAME }}
-          tag: ${{ GITHUB_REF_NAME }}
-          revision: ${{ GITHUB_SHA }}
+          tag: ${{ env.GITHUB_REF_NAME }}
+          revision: ${{ env.GITHUB_SHA }}
