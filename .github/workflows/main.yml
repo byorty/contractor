@@ -38,5 +38,3 @@ jobs:
           org: byorty
           tap: byorty/${{ env.APPNAME }}
           formula: ${{ env.APPNAME }}
-          tag: ${{ env.GITHUB_REF_NAME }}
-          revision: ${{ env.GITHUB_SHA }}
