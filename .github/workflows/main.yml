@@ -5,9 +5,6 @@ on:
     tags:
       - '*'
 
-permissions:
-  metadata: read
-
 jobs:
   releases-matrix:
     name: Release Go Binary
