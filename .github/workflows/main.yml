@@ -1,8 +1,5 @@
 name: deploy
 
-env:
-  APPNAME: contractor
-
 on:
   push:
     tags:
@@ -16,6 +13,8 @@ jobs:
       matrix:
         goos: [darwin]
         goarch: [arm64]
+    env:
+      APPNAME: contractor
     steps:
       - uses: actions/checkout@v2
       - uses: ncipollo/release-action@v1
