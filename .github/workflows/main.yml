@@ -31,10 +31,21 @@ jobs:
           goarch: ${{ matrix.goarch }}
           project_path: ./cmd/${{ env.APPNAME }}
           binary_name: ${{ env.APPNAME }}
-#      - name: Update Homebrew formula
-#        uses: dawidd6/action-homebrew-bump-formula@v3
-#        with:
-#          token: ${{ secrets.TOKEN }}
-#          org: byorty
-#          tap: byorty/${{ env.APPNAME }}
-#          formula: ${{ env.APPNAME }}
+      - name: Update Homebrew formula
+        uses: toolmantim/tap-release@1.6
+        with:
+          url: https://github.com/byorty/contractor/releases/download/${{ env.GITHUB_REF }}/contractor-${{ env.GITHUB_REF }}-darwin-arm64.tar.gz
+          tap: byorty/homebrew-contractor/contractor.rb
+          template: |
+            class Contractor < Formula
+                homepage "https://github.com/byorty/contractor"
+                desc "Reads the description document and generates test cases that will ensure that your application is compliant with its description"
+                version  "$STABLE_VERSION"
+                url      "$STABLE_ASSET_URL"
+                sha256   "$STABLE_ASSET_SHA256"
+                license "MIT"
+                
+                def install
+                bin.install "contractor"
+                end
+            end
