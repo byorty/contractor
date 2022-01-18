@@ -14,6 +14,8 @@ jobs:
         goos: [darwin]
         goarch: [arm64]
     steps:
+      - run: |
+        echo "${{ secrets.GITHUB_TOKEN }}"
       - uses: actions/checkout@v2
       - name: Install dependencies
         run: |
