@@ -30,7 +30,7 @@ jobs:
           github_token: ${{ secrets.TOKEN }}
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
-          project_path: "./cmd/${{ APPNAME }}"
+          project_path: ./cmd/${{ APPNAME }}
           binary_name: ${{ APPNAME }}
       - name: Update Homebrew formula
         uses: dawidd6/action-homebrew-bump-formula@v3
