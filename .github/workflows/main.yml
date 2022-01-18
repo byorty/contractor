@@ -14,6 +14,10 @@ jobs:
         goarch: [arm64]
     steps:
       - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          cp -f .env.dist .env
+          make install
       - uses: wangyoucao577/go-release-action@v1.22
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
