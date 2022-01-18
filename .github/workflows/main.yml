@@ -1,12 +1,12 @@
 name: deploy
 
-permissions:
-  releases: read
-
 on:
   push:
     tags:
       - '*'
+
+permissions:
+  metadata: read
 
 jobs:
   releases-matrix:
