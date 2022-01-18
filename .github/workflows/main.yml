@@ -31,9 +31,10 @@ jobs:
           goarch: ${{ matrix.goarch }}
           project_path: ./cmd/${{ env.APPNAME }}
           binary_name: ${{ env.APPNAME }}
-      - name: Update Homebrew formula
-        uses: dawidd6/action-homebrew-bump-formula@v3
-        with:
-          token: ${{ secrets.TOKEN }}
-          org: byorty
-          tap: byorty/${{ env.APPNAME }}
+#      - name: Update Homebrew formula
+#        uses: dawidd6/action-homebrew-bump-formula@v3
+#        with:
+#          token: ${{ secrets.TOKEN }}
+#          org: byorty
+#          tap: byorty/${{ env.APPNAME }}
+#          formula: ${{ env.APPNAME }}
