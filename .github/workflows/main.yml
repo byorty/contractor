@@ -1,5 +1,8 @@
 name: deploy
 
+env:
+  APPNAME: contractor
+
 on:
   push:
     tags:
@@ -15,6 +18,9 @@ jobs:
         goarch: [arm64]
     steps:
       - uses: actions/checkout@v2
+      - uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.TOKEN }}
       - name: Install dependencies
         run: |
           cp -f .env.dist .env
@@ -24,5 +30,14 @@ jobs:
           github_token: ${{ secrets.TOKEN }}
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
-          project_path: "./cmd/contractor"
-          binary_name: "contractor"
+          project_path: "./cmd/${{ APPNAME }}"
+          binary_name: ${{ APPNAME }}
+      - name: Update Homebrew formula
+        uses: dawidd6/action-homebrew-bump-formula@v3
+        with:
+          token: ${{ secrets.TOKEN }}
+          org: byorty
+          tap: byorty/${{ APPNAME }}
+          formula: ${{ APPNAME }}
+          tag: ${{ GITHUB_REF_NAME }}
+          revision: ${{ GITHUB_SHA }}
