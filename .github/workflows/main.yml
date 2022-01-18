@@ -14,7 +14,7 @@ jobs:
         goos: [darwin]
         goarch: [arm64]
     env:
-      APPNAME: contractor
+      env.APPNAME: contractor
     steps:
       - uses: actions/checkout@v2
       - uses: ncipollo/release-action@v1
@@ -29,14 +29,14 @@ jobs:
           github_token: ${{ secrets.TOKEN }}
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
-          project_path: ./cmd/contractor
-          binary_name: ${{ APPNAME }}
+          project_path: ./cmd/${{ env.APPNAME }}
+          binary_name: ${{ env.APPNAME }}
       - name: Update Homebrew formula
         uses: dawidd6/action-homebrew-bump-formula@v3
         with:
           token: ${{ secrets.TOKEN }}
           org: byorty
-          tap: byorty/${{ APPNAME }}
-          formula: ${{ APPNAME }}
+          tap: byorty/${{ env.APPNAME }}
+          formula: ${{ env.APPNAME }}
           tag: ${{ GITHUB_REF_NAME }}
           revision: ${{ GITHUB_SHA }}
