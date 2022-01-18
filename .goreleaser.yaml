@@ -8,6 +8,7 @@ builds:
       - linux
       - windows
       - darwin
+    main: ./cmd/contractor
 archives:
   - replacements:
       darwin: Darwin
