@@ -34,12 +34,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: mislav/bump-homebrew-formula-action@v1
         with:
-          formula-name: ${{ APPNAME }}
-          formula-path: ${{ APPNAME }}.rb
+          formula-name: ${{ env.APPNAME }}
+          formula-path: ${{ env.APPNAME }}.rb
           homebrew-tap: byorty/homebrew-tap
           base-branch: master
-          download-url: https://github.com/byorty/contractor/releases/download/${{ env.GITHUB_REF }}/${{ APPNAME }}_${{ env.GITHUB_REF }}_Darwin_arm64.tar.gz
+          download-url: https://github.com/byorty/contractor/releases/download/${{ env.GITHUB_REF }}/${{ env.APPNAME }}_${{ env.GITHUB_REF }}_Darwin_arm64.tar.gz
           commit-message: |
-            ${{ APPNAME }} ${{ env.GITHUB_REF }}
+            ${{ env.APPNAME }} ${{ env.GITHUB_REF }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
