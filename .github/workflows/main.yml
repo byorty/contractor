@@ -17,9 +17,6 @@ jobs:
       APPNAME: contractor
     steps:
       - uses: actions/checkout@v2
-      - uses: ncipollo/release-action@v1
-        with:
-          token: ${{ secrets.TOKEN }}
       - name: Install dependencies
         run: |
           cp -f .env.dist .env
