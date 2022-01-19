@@ -29,6 +29,10 @@ jobs:
           args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get checksum
+        id: checksum
+        run: |
+          echo "::set-output name=value::$(cat dist/checksums.txt | grep Darwin_arm64 | cut -d ' ' -f1)"
       - uses: mislav/bump-homebrew-formula-action@v1
         with:
           formula-name: ${{ env.APPNAME }}
@@ -36,6 +40,7 @@ jobs:
           homebrew-tap: byorty/homebrew-tap
           base-branch: master
           download-url: https://github.com/byorty/contractor/releases/download/${{ github.ref_name }}/${{ env.APPNAME }}_${{ github.ref_name }}_Darwin_arm64.tar.gz
+          download-sha256: ${{ steps.checksum.outputs.value }}
           commit-message: |
             ${{ env.APPNAME }} ${{ github.ref }}
         env:
