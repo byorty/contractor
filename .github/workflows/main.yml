@@ -39,7 +39,7 @@ jobs:
           formula-path: ${{ env.APPNAME }}.rb
           homebrew-tap: byorty/homebrew-tap
           base-branch: master
-          download-url: https://github.com/byorty/contractor/releases/download/${{ github.ref_name }}/${{ env.APPNAME }}_${{ github.ref_name }}_darwin_arm64.tar.gz
+          download-url: https://github.com/byorty/contractor/releases/download/${{ github.ref_name }}/${{ env.APPNAME }}_${{ github.ref_name }}_darwin_amd64.tar.gz
           download-sha256: "${{ steps.checksum.outputs.value }}"
           commit-message: |
             ${{ env.APPNAME }} ${{ github.ref }}
