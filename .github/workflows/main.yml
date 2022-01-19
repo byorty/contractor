@@ -32,8 +32,14 @@ jobs:
           args: release --rm-dist
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload assets
-        uses: actions/upload-artifact@v2
+      - uses: mislav/bump-homebrew-formula-action@v1
         with:
-          name: myapp
-          path: dist/*
+          formula-name: ${{ APPNAME }}
+          formula-path: ${{ APPNAME }}.rb
+          homebrew-tap: byorty/homebrew-tap
+          base-branch: master
+          download-url: https://github.com/byorty/contractor/releases/download/${{ env.GITHUB_REF }}/${{ APPNAME }}_${{ env.GITHUB_REF }}_Darwin_arm64.tar.gz
+          commit-message: |
+            ${{ APPNAME }} ${{ env.GITHUB_REF }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
