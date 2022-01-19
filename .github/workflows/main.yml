@@ -44,4 +44,5 @@ jobs:
           commit-message: |
             ${{ env.APPNAME }} ${{ github.ref }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          COMMITTER_TOKEN: ${{ secrets.TOKEN }}
