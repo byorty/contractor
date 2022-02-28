@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/byorty/contractor/common"
 	"github.com/byorty/contractor/converter"
 	"github.com/byorty/contractor/logger"
@@ -29,6 +30,7 @@ func main() {
 
 		err = worker.Configure(ctx, args)
 		if err != nil {
+			fmt.Println(err)
 			return err
 		}
 

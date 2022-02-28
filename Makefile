@@ -6,7 +6,7 @@ GOTEST=go test
 include .env
 
 PROJECT_DIR=$(shell pwd)
-EXAMPLES_DIR=$(PROJECT_DIR)/examples
+EXAMPLES_DIR=$(PROJECT_DIR)/specs
 CONTRACTOR=$(PROJECT_DIR)/cmd/contractor/main.go
 
 install:
@@ -27,8 +27,8 @@ generate:
 	go generate ./...
 
 run-tester:
-	@$(GORUN) $(CONTRACTOR) -m test \
-							-s $(EXAMPLES_DIR)/swagger.yml \
+	$(GORUN) $(CONTRACTOR) -m test \
+							-s $(EXAMPLES_DIR)/oa2.yml \
 							-b $(URL_BASE) \
 							-f $(SPEC_TYPE) \
 							-v "VAR_AUTHORIZATION:$(VAR_AUTHORIZATION)"

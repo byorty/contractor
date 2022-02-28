@@ -8,8 +8,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"io/ioutil"
 	"net/http"
-	"reflect"
-	"strings"
 	"time"
 )
 
@@ -20,15 +18,18 @@ type Tester interface {
 
 func NewFxTester(
 	mediaConverter common.MediaConverter,
+	builder AsserterBuilder,
 ) Tester {
 	return &tester{
 		suites:         make([]TestSuite, 0),
+		builder:        builder,
 		mediaConverter: mediaConverter,
 	}
 }
 
 type tester struct {
 	suites         TestSuiteContainer
+	builder        AsserterBuilder
 	mediaConverter common.MediaConverter
 }
 
@@ -101,6 +102,8 @@ func (t *tester) Test() (TestSuiteContainer, error) {
 	for _, suite := range t.suites {
 		for _, testCase := range suite.TestCases {
 			t.runTestCase(client, testCase)
+			processor := t.builder.Build(testCase)
+			processor.Process(testCase)
 		}
 	}
 
@@ -108,7 +111,6 @@ func (t *tester) Test() (TestSuiteContainer, error) {
 }
 
 func (t *tester) runTestCase(client *http.Client, testCase *TestCase) {
-	defer testCase.Assert()
 	if testCase.Err != nil {
 		return
 	}
@@ -180,93 +182,11 @@ type TestCase struct {
 	ExpectedResult TestCaseResult
 	ActualResult   *TestCaseResult
 	path           cmp.Path
-	assertions     []TestCaseAssertion
+	assertions     []*Assertion
 }
 
-func (t *TestCase) PushStep(ps cmp.PathStep) {
-	t.path = append(t.path, ps)
-}
-
-func (t *TestCase) Report(rs cmp.Result) {
-	if !rs.Equal() {
-		path := make([]string, 0)
-		for _, p := range t.path {
-			switch v := p.(type) {
-			case cmp.SliceIndex:
-				path = append(path, fmt.Sprint(v.Key()))
-			case cmp.MapIndex:
-				path = append(path, v.Key().String())
-			}
-		}
-
-		expectedValue, actualValue := t.path.Last().Values()
-		t.assertions = append(t.assertions, TestCaseAssertion{
-			Name:     fmt.Sprintf("Property '%s' value is not equal", strings.Join(path, ".")),
-			Expected: t.valueToString(expectedValue),
-			Actual:   t.valueToString(actualValue),
-		})
-	}
-}
-
-func (t *TestCase) PopStep() {
-	t.path = t.path[:len(t.path)-1]
-}
-
-func (t *TestCase) Assert() {
-	t.assertions = make([]TestCaseAssertion, 0)
-	defer func() {
-		if len(t.assertions) == 0 {
-			t.Status = TestCaseStatusSuccess
-		} else {
-			t.Status = TestCaseStatusFailure
-		}
-	}()
-	if t.Err != nil {
-		t.assertions = append(t.assertions, TestCaseAssertion{
-			Name:     "Error",
-			Expected: "nil",
-			Actual:   t.Err.Error(),
-		})
-
-		return
-	}
-
-	if t.ExpectedResult.StatusCode != t.ActualResult.StatusCode {
-		t.assertions = append(t.assertions, TestCaseAssertion{
-			Name:     "Status Code",
-			Expected: fmt.Sprint(t.ExpectedResult.StatusCode),
-			Actual:   fmt.Sprint(t.ActualResult.StatusCode),
-		})
-	}
-
-	for expectedHeaderName, expectedHeaderValue := range t.ExpectedResult.Headers {
-		actualHeaderValue, ok := t.ActualResult.Headers[expectedHeaderName]
-		if ok && expectedHeaderValue == actualHeaderValue {
-			continue
-		}
-
-		t.assertions = append(t.assertions, TestCaseAssertion{
-			Name:     fmt.Sprintf("Header %s", expectedHeaderName),
-			Expected: expectedHeaderValue,
-			Actual:   actualHeaderValue,
-		})
-	}
-
-	cmp.Equal(t.ExpectedResult.Body, t.ActualResult.Body, cmp.Reporter(t))
-
-	return
-}
-
-func (t *TestCase) GetAssertions() []TestCaseAssertion {
+func (t *TestCase) GetAssertions() []*Assertion {
 	return t.assertions
-}
-
-func (t *TestCase) valueToString(val reflect.Value) string {
-	if val.IsValid() {
-		return fmt.Sprint(val)
-	} else {
-		return "nil"
-	}
 }
 
 type TestCaseStatus int
@@ -281,10 +201,4 @@ type TestCaseResult struct {
 	StatusCode int
 	Headers    map[string]string
 	Body       interface{}
-}
-
-type TestCaseAssertion struct {
-	Name     string
-	Expected string
-	Actual   string
 }

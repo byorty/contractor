@@ -1,0 +1,46 @@
+NEWS_EXISTS:
+  request:
+    parameters:
+      news_id: 11401
+  response:
+    status_code: 200
+    body:
+      id: positive()
+      title: >
+        eq('Домашняя работа: как стартап бывшего топ-менеджера Microsoft зарабатывает на покупке жилья за наличные')
+      annotation: regex('([\\w\\d\\-\\.])')
+      partner: empty()
+      content: regex('(.)')
+      hash: eq('ee43501beb0944c412c9580ae604546f')
+      preview_img: eq('977081c0dc136761a13d60c513437dbf')
+      tags: empty()
+      status: eq('NEWS_STATUS_ACTIVE')
+      type: eq('CONTENT_TYPE_NEWS')
+      published_at: date('RFC3339')
+      created_at: date('RFC3339')
+      category: empty()
+      source: empty()
+      preview_img_title: empty()
+      preview_img_url: empty()
+      hyper_link: empty()
+      hyper_link_title: empty()
+      author: empty()
+      subject:
+        id: eq(32)
+      time_to_read: empty()
+      super_category: empty()
+      seo:
+        title: empty()
+        description: empty()
+        keywords: empty()
+
+NEWS_NOT_EXISTS:
+  request:
+    parameters:
+      news_id: 100500
+  response:
+    status_code: 404
+    body:
+      code: eq(5)
+      message: eq('api.row_not_found_error')
+      details: empty()

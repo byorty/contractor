@@ -1,0 +1,175 @@
+#NEWS_LIST_EXISTS:
+#  request:
+#    parameters:
+#      filter.status: NEWS_STATUS_ACTIVE
+#      paginator.offset: 0
+#      paginator.limit: 5
+#  response:
+#    status_code: 200
+#    body:
+#      items:
+#      - id: 11913
+#        title: '12012022'
+#        annotation: test
+#        partner:
+#          id: 1
+#          name: ''
+#        content: ''
+#        hash: 57edd706e232a29d06df5103c8034ce0
+#        preview_img: 87f8bd37d45a01dc0be554d070f17eb8
+#        tags: [ ]
+#        status: NEWS_STATUS_ACTIVE
+#        type: CONTENT_TYPE_NEWS
+#        published_at: '2022-01-10T09:53:07Z'
+#        created_at: '2022-01-12T15:55:14.492128Z'
+#        category:
+#        source:
+#          id: 22
+#        preview_img_title: ''
+#        preview_img_url: ''
+#        hyper_link: https://101.ru/radio/channel/24
+#        hyper_link_title: https://101.ru/radio/channel/24
+#        author:
+#          id: 19
+#        subject:
+#          id: 35
+#        time_to_read:
+#        super_category:
+#        seo:
+#          title: ''
+#          description: ''
+#          keywords: ''
+#      - id: 11909
+#        title: Обновление пользовательского соглашения с 23.12.2021
+#        annotation: 'Добавляем новый функционал '
+#        partner:
+#          id: 1
+#          name: ''
+#        content: ''
+#        hash: 625537c2d48e61e51733fc791b83de5f
+#        preview_img: ''
+#        tags: [ ]
+#        status: NEWS_STATUS_ACTIVE
+#        type: CONTENT_TYPE_OGON_ARTICLE
+#        published_at: '2021-12-09T06:00:00Z'
+#        created_at: '2021-12-23T08:14:53.285985Z'
+#        category:
+#        source:
+#          id: 22
+#        preview_img_title: ''
+#        preview_img_url: ''
+#        hyper_link: ''
+#        hyper_link_title: ''
+#        author:
+#          id: 19
+#        subject:
+#          id: 35
+#        time_to_read:
+#        super_category:
+#        seo:
+#          title: ''
+#          description: ''
+#          keywords: ''
+#      - id: 11876
+#        title: 20.11,21 измененная
+#        annotation: Просмотр новостей
+#        partner:
+#          id: 1
+#          name: ''
+#        content: ''
+#        hash: 480107c7e081f07e1a616b3e98a1bc89
+#        preview_img: 05d69995e3bdf2949c480d5a2464dcbf
+#        tags: [ ]
+#        status: NEWS_STATUS_ACTIVE
+#        type: CONTENT_TYPE_NEWS
+#        published_at: '2021-11-19T08:03:29Z'
+#        created_at: '2021-11-20T08:03:11.199794Z'
+#        category:
+#          id: 34
+#        source:
+#          id: 22
+#        preview_img_title: ''
+#        preview_img_url: ''
+#        hyper_link: ''
+#        hyper_link_title: ''
+#        author:
+#          id: 19
+#        subject:
+#          id: 32
+#        time_to_read:
+#        super_category:
+#        seo:
+#          title: ''
+#          description: ''
+#          keywords: ''
+#      - id: 11910
+#        title: '30122021'
+#        annotation: Просмотр новостей
+#        partner:
+#          id: 1
+#          name: ''
+#        content: ''
+#        hash: 19695d1b1c3525d56202c90b40afa566
+#        preview_img: 055353145b695f7b52640d2adb1c6187
+#        tags: [ ]
+#        status: NEWS_STATUS_ACTIVE
+#        type: CONTENT_TYPE_NEWS
+#        published_at: '2021-11-19T08:03:29Z'
+#        created_at: '2021-12-30T09:40:25.969681Z'
+#        category:
+#        source:
+#          id: 22
+#        preview_img_title: ''
+#        preview_img_url: ''
+#        hyper_link: ''
+#        hyper_link_title: ''
+#        author:
+#          id: 19
+#        subject:
+#          id: 35
+#        time_to_read:
+#        super_category:
+#        seo:
+#          title: ''
+#          description: ''
+#          keywords: ''
+#      - id: 11798
+#        title: 375341d2-69e3-4bc1-af38-a596a0342960
+#        annotation: test annotation
+#        partner:
+#        content: ''
+#        hash: 5ce600c6b10891fcc0e939a4c4ac12ce
+#        preview_img: ''
+#        tags: [ ]
+#        status: NEWS_STATUS_ACTIVE
+#        type: CONTENT_TYPE_OGON_ARTICLE
+#        published_at: '2021-10-27T08:24:27Z'
+#        created_at: '2021-10-27T08:24:27.988170Z'
+#        category:
+#        source:
+#        preview_img_title: ''
+#        preview_img_url: ''
+#        hyper_link: ''
+#        hyper_link_title: ''
+#        author:
+#        subject:
+#          id: 32
+#        time_to_read:
+#        super_category:
+#        seo:
+#          title:
+#          description:
+#          keywords:
+#      count: 49
+#
+#NEWS_LIST_NOT_EXISTS:
+#  request:
+#    parameters:
+#      filter.status: NEWS_STATUS_ACTIVE
+#      paginator.offset: 10000
+#      paginator.limit: 10
+#  response:
+#    status_code: 200
+#    body:
+#      count: 47
+#      items: []
