@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: SP Ecosystem API
+  title: Test API
   version: "1.0"
 paths:
   /v1/news:

@@ -5,6 +5,7 @@ import (
 	"github.com/antonmedv/expr"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -203,8 +204,27 @@ type eqAsserter struct {
 }
 
 func (a *eqAsserter) Assert(value interface{}) error {
-	a.actual = value
-	return validation.In(fmt.Sprint(a.expected)).Validate(fmt.Sprint(value))
+	switch a.expected.(type) {
+	case int8, int, int16, int32, int64:
+		switch v := value.(type) {
+		case float64:
+			a.actual = int(v)
+		case string:
+			i, err := strconv.Atoi(fmt.Sprintf("%v", value))
+			if err != nil {
+				return err
+			}
+
+			a.actual = i
+		default:
+			a.actual = value
+		}
+
+	default:
+		a.actual = value
+	}
+
+	return validation.In(a.expected).Validate(a.actual)
 }
 
 func (a *eqAsserter) GetExpected() string {
