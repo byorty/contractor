@@ -3,6 +3,7 @@ module github.com/byorty/contractor
 go 1.17
 
 require (
+	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/antonmedv/expr v1.9.0
 	github.com/buger/goterm v1.0.3
 	github.com/getkin/kin-openapi v0.87.0
@@ -11,6 +12,7 @@ require (
 	github.com/google/go-cmp v0.5.6
 	github.com/gorilla/mux v1.8.0
 	github.com/jessevdk/go-flags v1.5.0
+	github.com/lucasjones/reggen v0.0.0-20200904144131-37ba4fa293bb
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/fx v1.16.0

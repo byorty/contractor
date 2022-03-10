@@ -15,17 +15,23 @@ type Mocker interface {
 }
 
 func NewFxMocker(
+	dataCrawler common.DataCrawler,
+	expressionFactory common.ExpressionFactory,
 	mediaConverter common.MediaConverter,
 ) Mocker {
 	return &mocker{
-		mediaConverter: mediaConverter,
-		router:         mux.NewRouter(),
+		dataCrawler:       dataCrawler,
+		mediaConverter:    mediaConverter,
+		expressionFactory: expressionFactory,
+		router:            mux.NewRouter(),
 	}
 }
 
 type mocker struct {
-	mediaConverter common.MediaConverter
-	router         *mux.Router
+	dataCrawler       common.DataCrawler
+	expressionFactory common.ExpressionFactory
+	mediaConverter    common.MediaConverter
+	router            *mux.Router
 }
 
 func (m *mocker) Configure(ctx context.Context, containers common.TemplateContainer) error {
@@ -43,6 +49,39 @@ func (m *mocker) Configure(ctx context.Context, containers common.TemplateContai
 				for queryName, queryValue := range template.QueryParams {
 					route.Queries(queryName, fmt.Sprint(queryValue))
 				}
+
+				m.dataCrawler.Walk(example, func(_ string, data interface{}) {
+					switch d := data.(type) {
+					case map[string]interface{}:
+						for key, value := range d {
+							switch v := value.(type) {
+							case map[string]interface{}, []interface{}:
+								continue
+							default:
+								generator, err := m.expressionFactory.Create(common.ExpressionTypeGenerator, v)
+								if err != nil {
+									continue
+								}
+
+								d[key] = generator.(Generator).Generate()
+							}
+						}
+					case []interface{}:
+						for i, item := range d {
+							switch item.(type) {
+							case map[string]interface{}, []interface{}:
+								continue
+							default:
+								generator, err := m.expressionFactory.Create(common.ExpressionTypeGenerator, item)
+								if err != nil {
+									continue
+								}
+
+								d[i] = generator.(Generator).Generate()
+							}
+						}
+					}
+				})
 
 				buf, err := m.mediaConverter.Marshal(common.MediaType(mediaType), example)
 				if err != nil {

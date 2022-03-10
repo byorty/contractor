@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"fmt"
 	"github.com/jessevdk/go-flags"
 	"go.uber.org/fx"
 	"os"
@@ -61,6 +62,7 @@ func (a *Application) Run(invoker interface{}) {
 	defer cancel()
 
 	if err = a.fxApp.Start(startCtx); err != nil {
+		fmt.Println(err)
 		os.Exit(1)
 	}
 }

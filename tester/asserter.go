@@ -2,12 +2,11 @@ package tester
 
 import (
 	"fmt"
-	"github.com/antonmedv/expr"
+	"github.com/byorty/contractor/common"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type Assertion struct {
@@ -24,123 +23,75 @@ type AsserterBuilder interface {
 	Build(testCase *TestCase) AssertionProcessor
 }
 
-func NewFxAsserterBuilder() AsserterBuilder {
-	return &asserterBuilder{}
+func NewFxAsserterBuilder(
+	dataCrawler common.DataCrawler,
+	expressionFactory common.ExpressionFactory,
+) AsserterBuilder {
+	return &asserterBuilder{
+		expressionFactory: expressionFactory,
+		dataCrawler:       dataCrawler,
+		dataCrawlerOpts: []common.DataCrawlerOption{
+			common.WithJoinKeys(),
+			common.WithSkipCollections(),
+		},
+	}
 }
 
 type asserterBuilder struct {
+	dataCrawler       common.DataCrawler
+	dataCrawlerOpts   []common.DataCrawlerOption
+	expressionFactory common.ExpressionFactory
 }
 
 func (b *asserterBuilder) Build(testCase *TestCase) AssertionProcessor {
-	assertions := AssertionMap{
-		"__Status__": &Assertion{
-			Name:       "Status Code",
-			expression: fmt.Sprintf("NewEq(%d)", testCase.ExpectedResult.StatusCode),
-			value:      testCase.ActualResult.StatusCode,
-		},
-		"__Err__": &Assertion{
-			Name:       "Error",
-			expression: "NewEmpty()",
-			value:      testCase.Err,
+	processor := &assertionProcessor{
+		expressionFactory: b.expressionFactory,
+		assertions: AssertionMap{
+			"__Err__": &Assertion{
+				Name:       "Error",
+				expression: "empty()",
+				value:      testCase.Err,
+			},
 		},
 	}
 
+	if testCase.ActualResult == nil {
+		return processor
+	}
+
+	processor.assertions["__Status__"] = &Assertion{
+		Name:       "Status Code",
+		expression: fmt.Sprintf("eq(%d)", testCase.ExpectedResult.StatusCode),
+		value:      testCase.ActualResult.StatusCode,
+	}
+
 	for expectedHeaderName, expectedHeaderValue := range testCase.ExpectedResult.Headers {
-		assertions[fmt.Sprintf("__%s__", expectedHeaderName)] = &Assertion{
+		processor.assertions[fmt.Sprintf("__%s__", expectedHeaderName)] = &Assertion{
 			Name:       fmt.Sprintf("Header %s", expectedHeaderName),
-			expression: fmt.Sprintf("NewEq('%s')", expectedHeaderValue),
+			expression: fmt.Sprintf("eq('%s')", expectedHeaderValue),
 			value:      testCase.ActualResult.Headers[expectedHeaderName],
 		}
 	}
 
-	b.buildMap(assertions, "", testCase.ExpectedResult.Body, func(m map[string]*Assertion, k string, v interface{}) {
-		strVal := v.(string)
-		m[k] = &Assertion{
-			expression: fmt.Sprintf("New%s%s", strings.Title(strVal[0:1]), strVal[1:]),
+	b.dataCrawler.Walk(testCase.ExpectedResult.Body, func(k string, v interface{}) {
+		processor.assertions[k] = &Assertion{
+			expression: v.(string),
 		}
-	})
-	b.buildMap(assertions, "", testCase.ActualResult.Body, func(m map[string]*Assertion, k string, v interface{}) {
-		_, ok := m[k]
+	}, b.dataCrawlerOpts...)
+
+	b.dataCrawler.Walk(testCase.ActualResult.Body, func(k string, v interface{}) {
+		_, ok := processor.assertions[k]
 		if !ok {
-			m[k] = &Assertion{
+			processor.assertions[k] = &Assertion{
 				value: v,
 			}
 			return
 		}
 
-		m[k].value = v
-	})
+		processor.assertions[k].value = v
+	}, b.dataCrawlerOpts...)
 
-	return &assertionProcessor{
-		assertions: assertions,
-		env: map[string]interface{}{
-			"NewEq": func(expected interface{}) Asserter {
-				return &eqAsserter{
-					expected: expected,
-				}
-			},
-			"NewPositive": func() Asserter {
-				return &minAsserter{
-					expected: 1,
-				}
-			},
-			"NewMin": func(expected float64) Asserter {
-				return &minAsserter{
-					expected: expected,
-				}
-			},
-			"NewRegex": func(expr string) Asserter {
-				return &regexAsserter{
-					expected: expr,
-				}
-			},
-			"NewEmpty": func() Asserter {
-				return &emptyAsserter{}
-			},
-			"NewDate": func(layout string) Asserter {
-				var expected string
-				switch layout {
-				case "RFC3339":
-					expected = time.RFC3339
-				case "RFC3339NANO":
-					expected = time.RFC3339Nano
-				default:
-					expected = layout
-				}
-				return &dateAsserter{
-					expected: expected,
-				}
-			},
-		},
-	}
-}
-
-func (b *asserterBuilder) buildMap(assertions AssertionMap, parentPath string, rawBody interface{}, fillFunc func(m map[string]*Assertion, k string, v interface{})) {
-	switch body := rawBody.(type) {
-	case map[string]interface{}:
-		for k, val := range body {
-			switch v := val.(type) {
-			case map[string]interface{}, []interface{}:
-				b.buildMap(
-					assertions,
-					fmt.Sprintf("%s.%s", parentPath, k),
-					v,
-					fillFunc,
-				)
-			default:
-				fillFunc(assertions, fmt.Sprintf("%s.%s", parentPath, k), v)
-			}
-		}
-	case []interface{}:
-		for i, item := range body {
-			b.buildMap(
-				assertions,
-				fmt.Sprintf("%s.%d", parentPath, i),
-				item,
-				fillFunc,
-			)
-		}
-	}
+	return processor
 }
 
 type AssertionProcessor interface {
@@ -148,8 +99,8 @@ type AssertionProcessor interface {
 }
 
 type assertionProcessor struct {
-	assertions AssertionMap
-	env        map[string]interface{}
+	expressionFactory common.ExpressionFactory
+	assertions        AssertionMap
 }
 
 func (a *assertionProcessor) Process(testCase *TestCase) {
@@ -175,7 +126,7 @@ func (a *assertionProcessor) Process(testCase *TestCase) {
 			continue
 		}
 
-		output, err := expr.Eval(assertion.expression, a.env)
+		output, err := a.expressionFactory.Create(common.ExpressionTypeAsserter, assertion.expression)
 		if err != nil {
 			assertion.Actual = err.Error()
 			testCase.assertions = append(testCase.assertions, assertion)
