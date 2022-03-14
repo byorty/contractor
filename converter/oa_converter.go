@@ -60,13 +60,13 @@ func (c *oaConverter) processOperation(arguments common.Arguments, pathName, htt
 			continue
 		}
 
-		c.processParameter(arguments.BaseUrl, pathName, httpMethod, parameterRef.Value)
+		c.processParameter(arguments.Url, pathName, httpMethod, parameterRef.Value)
 	}
 
 	if operation.RequestBody != nil {
 		for mediaTypeName, mediaType := range operation.RequestBody.Value.Content {
 			for exampleName, exampleRef := range mediaType.Examples {
-				template := c.container.Create(exampleName, arguments.BaseUrl, pathName, httpMethod)
+				template := c.container.Create(exampleName, arguments.Url, pathName, httpMethod)
 				template.Bodies[mediaTypeName] = exampleRef.Value.Value
 			}
 		}

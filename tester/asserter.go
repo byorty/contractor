@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"github.com/byorty/contractor/common"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/pkg/errors"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Assertion struct {
@@ -149,6 +151,12 @@ type Asserter interface {
 	GetActual() string
 }
 
+func NewEqAsserter(expected interface{}) Asserter {
+	return &eqAsserter{
+		expected: expected,
+	}
+}
+
 type eqAsserter struct {
 	expected interface{}
 	actual   interface{}
@@ -186,6 +194,18 @@ func (a *eqAsserter) GetActual() string {
 	return fmt.Sprint(a.actual)
 }
 
+func NewPositiveAsserter() Asserter {
+	return &minAsserter{
+		expected: 1,
+	}
+}
+
+func NewMinAsserter(expected float64) Asserter {
+	return &minAsserter{
+		expected: expected,
+	}
+}
+
 type minAsserter struct {
 	expected float64
 	actual   interface{}
@@ -197,11 +217,67 @@ func (a *minAsserter) Assert(value interface{}) error {
 }
 
 func (a *minAsserter) GetExpected() string {
-	return fmt.Sprintf("great than %d", a.expected)
+	return fmt.Sprintf("great than %f", a.expected)
 }
 
 func (a *minAsserter) GetActual() string {
 	return fmt.Sprint(a.actual)
+}
+
+func NewMaxAsserter(expected float64) Asserter {
+	return &maxAsserter{
+		expected: expected,
+	}
+}
+
+type maxAsserter struct {
+	expected float64
+	actual   interface{}
+}
+
+func (a *maxAsserter) Assert(value interface{}) error {
+	a.actual = value
+	return validation.Max(a.expected).Validate(value)
+}
+
+func (a *maxAsserter) GetExpected() string {
+	return fmt.Sprintf("less than %f", a.expected)
+}
+
+func (a *maxAsserter) GetActual() string {
+	return fmt.Sprint(a.actual)
+}
+
+func NewRangeAsserter(min, max interface{}) Asserter {
+	return &rangeAsserter{
+		min: min,
+		max: max,
+	}
+}
+
+type rangeAsserter struct {
+	min    interface{}
+	max    interface{}
+	actual interface{}
+}
+
+func (a *rangeAsserter) Assert(value interface{}) error {
+	a.actual = value
+	return validation.Validate(value, validation.Min(a.min), validation.Max(a.max))
+}
+
+func (a *rangeAsserter) GetExpected() string {
+	return fmt.Sprintf("great than %v and less than %v", a.min, a.max)
+}
+
+func (a *rangeAsserter) GetActual() string {
+	return fmt.Sprint(a.actual)
+}
+
+func NewRegexAsserter(expr string) Asserter {
+	return &regexAsserter{
+		expected: expr,
+	}
 }
 
 type regexAsserter struct {
@@ -222,6 +298,10 @@ func (a *regexAsserter) GetActual() string {
 	return fmt.Sprint(a.actual)
 }
 
+func NewEmptyAsserter() Asserter {
+	return &emptyAsserter{}
+}
+
 type emptyAsserter struct {
 	actual interface{}
 }
@@ -239,6 +319,22 @@ func (a *emptyAsserter) GetActual() string {
 	return fmt.Sprint(a.actual)
 }
 
+func NewDateAsserter(layout string) Asserter {
+	var expected string
+	switch layout {
+	case common.ExpressionDateLayoutRFC3339:
+		expected = time.RFC3339
+	case common.ExpressionDateLayoutRFC3339Nano:
+		expected = time.RFC3339Nano
+	default:
+		expected = layout
+	}
+
+	return &dateAsserter{
+		expected: expected,
+	}
+}
+
 type dateAsserter struct {
 	expected string
 	actual   interface{}
@@ -254,5 +350,33 @@ func (a *dateAsserter) GetExpected() string {
 }
 
 func (a *dateAsserter) GetActual() string {
+	return fmt.Sprint(a.actual)
+}
+
+func NewContainsAsserter(expr string) Asserter {
+	return &containsAsserter{
+		expected: expr,
+	}
+}
+
+type containsAsserter struct {
+	expected string
+	actual   interface{}
+}
+
+func (a *containsAsserter) Assert(value interface{}) error {
+	a.actual = value
+	if strings.Contains(value.(string), a.expected) {
+		return nil
+	}
+
+	return errors.New(a.GetExpected())
+}
+
+func (a *containsAsserter) GetExpected() string {
+	return fmt.Sprintf("must contains %s", a.expected)
+}
+
+func (a *containsAsserter) GetActual() string {
 	return fmt.Sprint(a.actual)
 }

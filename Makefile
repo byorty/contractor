@@ -29,22 +29,13 @@ generate:
 run-tester:
 	$(GORUN) $(CONTRACTOR) -m test \
 							-s $(EXAMPLES_DIR)/oa2.yml \
-							-b $(URL_BASE) \
+							-u $(URL_BASE) \
 							-f $(SPEC_TYPE) \
 							-v "VAR_AUTHORIZATION:$(VAR_AUTHORIZATION)"
 
 run-mocker:
 	$(GORUN) $(CONTRACTOR) -m mock \
 							-s $(EXAMPLES_DIR)/oa2.yml \
-							-b $(URL_BASE) \
-							-f $(SPEC_TYPE)
-
-send-request:
-	curl -H "Content-Type: application/json" http://localhost:8181/v1/news/11401
-
-check-mocker:
-	$(GORUN) $(CONTRACTOR) -m test \
-							-s $(EXAMPLES_DIR)/oa2.yml \
-							-b "http://localhost:8181" \
-							-t "get_news_by_id" \
-							-f $(SPEC_TYPE)
+							-u $(URL_BASE) \
+							-f $(SPEC_TYPE) \
+							-v "VAR_AUTHORIZATION:$(VAR_AUTHORIZATION)"

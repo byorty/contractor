@@ -13,6 +13,11 @@ const (
 	ExpressionTypeGenerator ExpressionType = "generator"
 )
 
+const (
+	ExpressionDateLayoutRFC3339     string = "RFC3339"
+	ExpressionDateLayoutRFC3339Nano string = "RFC3339NANO"
+)
+
 type ExpressionFactoryIn struct {
 	fx.In
 	Descriptors []ExpressionDescriptor `group:"expression_descriptor"`

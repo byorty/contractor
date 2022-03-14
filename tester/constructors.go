@@ -3,7 +3,6 @@ package tester
 import (
 	"github.com/byorty/contractor/common"
 	"go.uber.org/fx"
-	"time"
 )
 
 var Constructors = fx.Provide(
@@ -21,13 +20,9 @@ var Constructors = fx.Provide(
 		Group: "expression_descriptor",
 		Target: func() common.ExpressionDescriptor {
 			return common.ExpressionDescriptor{
-				Type: common.ExpressionTypeAsserter,
-				Name: "eq",
-				Constructor: func(expected interface{}) Asserter {
-					return &eqAsserter{
-						expected: expected,
-					}
-				},
+				Type:        common.ExpressionTypeAsserter,
+				Name:        "eq",
+				Constructor: NewEqAsserter,
 			}
 		},
 	},
@@ -35,13 +30,9 @@ var Constructors = fx.Provide(
 		Group: "expression_descriptor",
 		Target: func() common.ExpressionDescriptor {
 			return common.ExpressionDescriptor{
-				Type: common.ExpressionTypeAsserter,
-				Name: "positive",
-				Constructor: func() Asserter {
-					return &minAsserter{
-						expected: 1,
-					}
-				},
+				Type:        common.ExpressionTypeAsserter,
+				Name:        "positive",
+				Constructor: NewPositiveAsserter,
 			}
 		},
 	},
@@ -49,13 +40,9 @@ var Constructors = fx.Provide(
 		Group: "expression_descriptor",
 		Target: func() common.ExpressionDescriptor {
 			return common.ExpressionDescriptor{
-				Type: common.ExpressionTypeAsserter,
-				Name: "min",
-				Constructor: func(expected float64) Asserter {
-					return &minAsserter{
-						expected: expected,
-					}
-				},
+				Type:        common.ExpressionTypeAsserter,
+				Name:        "min",
+				Constructor: NewMinAsserter,
 			}
 		},
 	},
@@ -63,13 +50,9 @@ var Constructors = fx.Provide(
 		Group: "expression_descriptor",
 		Target: func() common.ExpressionDescriptor {
 			return common.ExpressionDescriptor{
-				Type: common.ExpressionTypeAsserter,
-				Name: "regex",
-				Constructor: func(expr string) Asserter {
-					return &regexAsserter{
-						expected: expr,
-					}
-				},
+				Type:        common.ExpressionTypeAsserter,
+				Name:        "max",
+				Constructor: NewMaxAsserter,
 			}
 		},
 	},
@@ -77,11 +60,9 @@ var Constructors = fx.Provide(
 		Group: "expression_descriptor",
 		Target: func() common.ExpressionDescriptor {
 			return common.ExpressionDescriptor{
-				Type: common.ExpressionTypeAsserter,
-				Name: "empty",
-				Constructor: func() Asserter {
-					return &emptyAsserter{}
-				},
+				Type:        common.ExpressionTypeAsserter,
+				Name:        "regex",
+				Constructor: NewRegexAsserter,
 			}
 		},
 	},
@@ -89,23 +70,39 @@ var Constructors = fx.Provide(
 		Group: "expression_descriptor",
 		Target: func() common.ExpressionDescriptor {
 			return common.ExpressionDescriptor{
-				Type: common.ExpressionTypeAsserter,
-				Name: "date",
-				Constructor: func(layout string) Asserter {
-					var expected string
-					switch layout {
-					case "RFC3339":
-						expected = time.RFC3339
-					case "RFC3339NANO":
-						expected = time.RFC3339Nano
-					default:
-						expected = layout
-					}
-
-					return &dateAsserter{
-						expected: expected,
-					}
-				},
+				Type:        common.ExpressionTypeAsserter,
+				Name:        "empty",
+				Constructor: NewEmptyAsserter,
+			}
+		},
+	},
+	fx.Annotated{
+		Group: "expression_descriptor",
+		Target: func() common.ExpressionDescriptor {
+			return common.ExpressionDescriptor{
+				Type:        common.ExpressionTypeAsserter,
+				Name:        "date",
+				Constructor: NewDateAsserter,
+			}
+		},
+	},
+	fx.Annotated{
+		Group: "expression_descriptor",
+		Target: func() common.ExpressionDescriptor {
+			return common.ExpressionDescriptor{
+				Type:        common.ExpressionTypeAsserter,
+				Name:        "range",
+				Constructor: NewRangeAsserter,
+			}
+		},
+	},
+	fx.Annotated{
+		Group: "expression_descriptor",
+		Target: func() common.ExpressionDescriptor {
+			return common.ExpressionDescriptor{
+				Type:        common.ExpressionTypeAsserter,
+				Name:        "contains",
+				Constructor: NewContainsAsserter,
 			}
 		},
 	},

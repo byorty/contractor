@@ -22,7 +22,7 @@ CHANGE_USER_NEWS_SUCCESS:                        # уникальное имя
         id: eq(11401)
         title: >
           eq('Домашняя работа: как стартап бывшего топ-менеджера Microsoft зарабатывает на покупке жилья за наличные')
-        annotation: regex('([\\w\\d\\-\\.])')
+        annotation: regex('([\\w\\d\\-\\.\\,\\?\\:]){100}')
         partner: empty()
         content: regex('([\\w\\d\\-\\.])')
         hash: eq('ee43501beb0944c412c9580ae604546f')

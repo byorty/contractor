@@ -22,6 +22,11 @@ var (
 		h2:    tm.RED,
 		param: tm.RED,
 	}
+	successColors = colors{
+		h1:    tm.YELLOW,
+		h2:    tm.GREEN,
+		param: tm.GREEN,
+	}
 )
 
 type Logger interface {
@@ -32,6 +37,7 @@ type Logger interface {
 	PrintFailure()
 	PrintSuccess()
 	ToErrorColors() Logger
+	ToSuccessColors() Logger
 }
 
 func NewFxLogger() Logger {
@@ -85,5 +91,11 @@ func (l *stdoutLogger) PrintSuccess() {
 func (l *stdoutLogger) ToErrorColors() Logger {
 	return &stdoutLogger{
 		colors: errorColors,
+	}
+}
+
+func (l *stdoutLogger) ToSuccessColors() Logger {
+	return &stdoutLogger{
+		colors: successColors,
 	}
 }
