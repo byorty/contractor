@@ -11,7 +11,6 @@ produces:
 paths:
   /v1/news:
     get:
-      summary: Получить список новостей
       operationId: Contents_GetNewsList
       responses:
         "200":
@@ -4706,20 +4705,6 @@ definitions:
     default: MODEL_FIELD_TYPE_UNSPECIFIED
   News:
     type: object
-    example:
-      id: 1
-      partner:
-        id: 456
-      title: «Дейли сервис» провели ICO
-      content: «Дейли сервис» провели ICO
-      tags:
-        - тэг1
-        - тэг2
-      preview: picture.jpg
-      status: NEWS_ACTIVE
-      type: NEWS_TYPE_COMMON
-      created_at: "2019-08-24T14:15:22Z"
-      published_at: "2019-08-24T14:15:22Z"
     properties:
       id:
         type: integer
