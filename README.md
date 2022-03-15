@@ -162,8 +162,8 @@ contractor [OPTIONS]
 Формат спецификации API
 
 Возможные значения:
-1. oa2 - для [OpenAPI 2][]
-2. oa3 - для [OpenAPI 3][]
+1. oa2 - для [OpenAPI 2](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md)
+2. oa3 - для [OpenAPI 3](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.0.md)
 
 Значение по умолчанию: `oa2`
 
