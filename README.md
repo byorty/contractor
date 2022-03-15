@@ -129,7 +129,7 @@ brew install byorty/tap/contractor
                -f oa2 \
                -v "VAR_AUTHORIZATION: Bearer some-jwt"
    ```
-6. Запустите провалидируйте свой сервер:
+6. Провалидируйте свой сервер:
    ```shell
    contractor  -m test \
                -s ./specs/oa2.yml \
