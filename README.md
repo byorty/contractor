@@ -5,8 +5,8 @@ Contractor читает спецификацию вашего API чтобы:
 2. Валидировать backend-имплементацию
 
 Поддерживаемые форматы спецификации API:
-1. [OpenAPI 2][] (также известный как Swagger)
-2. [OpenAPI 3][]
+1. [OpenAPI 2](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md) (также известный как Swagger)
+2. [OpenAPI 3](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.0.md)
 
 Поддерживаемые платформы:
 1. macOS
@@ -135,6 +135,8 @@ brew install byorty/tap/contractor
                -s ./specs/oa2.yml \
                -u http://localhost:8181 \
                -f oa2 \
+               -t tag1 \
+               -t tag2 \
                -v "VAR_AUTHORIZATION: Bearer some-jwt"
    ```
 
