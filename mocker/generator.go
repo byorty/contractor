@@ -38,7 +38,7 @@ type minGenerator struct {
 }
 
 func (g minGenerator) Generate() interface{} {
-	return randomdata.Number(g.min, math.MaxInt64)
+	return randomdata.Number(g.min, math.MaxInt32)
 }
 
 func NewMaxGenerator(max int) Generator {
