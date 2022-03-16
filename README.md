@@ -8,6 +8,10 @@ Contractor читает спецификацию вашего API чтобы:
 1. [OpenAPI 2](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/2.0.md) (также известный как Swagger)
 2. [OpenAPI 3](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.0.md)
 
+Поддерживаемые расширения файлов спецификации API:
+1. [YAML](https://yaml.org)
+2. [JSON](https://www.json.org/json-en.html)
+
 Поддерживаемые платформы:
 1. macOS
 2. Linux
