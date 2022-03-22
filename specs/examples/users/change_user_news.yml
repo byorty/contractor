@@ -1,4 +1,5 @@
 CHANGE_USER_NEWS_SUCCESS:                        # уникальное имя
+  priority: 1                                    # приоритет
   tags:                                          # поддержка тэгов
     - user                                       #
     - dev                                        #

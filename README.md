@@ -90,6 +90,7 @@ brew install byorty/tap/contractor
 3. Опишите примеры запросов и ответов метода API:
    ```yaml
    CHANGE_USER_NEWS_SUCCESS:                        # уникальное имя в рамках всей спецификации
+     priority: 1                                    # приоритет
      tags:                                          # поддержка тэгов
        - user                                       #
        - develop                                    #

@@ -18,6 +18,7 @@ import (
 const (
 	xExamples = "x-examples"
 	xTagsName = "x-tags"
+	xPriority = "x-priority"
 )
 
 type XOperationRequestExample struct {
@@ -34,6 +35,7 @@ type XOperationExample struct {
 	Request  XOperationRequestExample  `json:"request"`
 	Response XOperationResponseExample `json:"response"`
 	Tags     []string                  `json:"tags"`
+	Priority int                       `json:"priority"`
 }
 
 type XOperationExamples map[string]XOperationExample
@@ -99,6 +101,10 @@ func (c *oaConverter) processOperation(arguments common.Arguments, pathName, htt
 				if example.Extensions != nil {
 					if tags, ok := example.Extensions[xTagsName]; ok {
 						template.Tags = tags.([]string)
+					}
+
+					if priority, ok := example.Extensions[xPriority]; ok {
+						template.Priority = priority.(int)
 					}
 				}
 			}
@@ -201,6 +207,7 @@ func (c *oaConverter) processXOperationExamples(arguments common.Arguments, oper
 						ExtensionProps: openapi3.ExtensionProps{
 							Extensions: map[string]interface{}{
 								xTagsName: example.Tags,
+								xPriority: example.Priority,
 							},
 						},
 					},

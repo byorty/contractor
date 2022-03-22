@@ -106,10 +106,10 @@ type assertionProcessor struct {
 }
 
 func (a *assertionProcessor) Process(testCase *TestCase) {
-	testCase.assertions = make([]*Assertion, 0)
+	testCase.Assertions = make([]*Assertion, 0)
 
 	defer func() {
-		if len(testCase.assertions) == 0 {
+		if len(testCase.Assertions) == 0 {
 			testCase.Status = TestCaseStatusSuccess
 		} else {
 			testCase.Status = TestCaseStatusFailure
@@ -124,14 +124,14 @@ func (a *assertionProcessor) Process(testCase *TestCase) {
 		if len(assertion.expression) == 0 {
 			assertion.Expected = "not present"
 			assertion.Actual = "present"
-			testCase.assertions = append(testCase.assertions, assertion)
+			testCase.Assertions = append(testCase.Assertions, assertion)
 			continue
 		}
 
 		output, err := a.expressionFactory.Create(common.ExpressionTypeAsserter, assertion.expression)
 		if err != nil {
 			assertion.Actual = err.Error()
-			testCase.assertions = append(testCase.assertions, assertion)
+			testCase.Assertions = append(testCase.Assertions, assertion)
 			continue
 		}
 
@@ -140,7 +140,7 @@ func (a *assertionProcessor) Process(testCase *TestCase) {
 		if err != nil {
 			assertion.Expected = asserter.GetExpected()
 			assertion.Actual = asserter.GetActual()
-			testCase.assertions = append(testCase.assertions, assertion)
+			testCase.Assertions = append(testCase.Assertions, assertion)
 		}
 	}
 }

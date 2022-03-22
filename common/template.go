@@ -18,6 +18,7 @@ type Template struct {
 	ExpectedResponses map[int]map[string]interface{}
 	Bodies            map[string]interface{}
 	Tags              []string
+	Priority          int
 }
 
 func (t Template) GetUrl() string {

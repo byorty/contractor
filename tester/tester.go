@@ -8,12 +8,13 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"io/ioutil"
 	"net/http"
+	"sort"
 	"time"
 )
 
 type Tester interface {
 	Configure(ctx context.Context, arguments common.Arguments, containers common.TemplateContainer)
-	Test() (TestSuiteContainer, error)
+	Test() (TestCaseContainer, error)
 }
 
 func NewFxTester(
@@ -21,14 +22,14 @@ func NewFxTester(
 	builder AsserterBuilder,
 ) Tester {
 	return &tester{
-		suites:         make([]TestSuite, 0),
+		cases:          make(TestCaseContainer, 0),
 		builder:        builder,
 		mediaConverter: mediaConverter,
 	}
 }
 
 type tester struct {
-	suites         TestSuiteContainer
+	cases          TestCaseContainer
 	builder        AsserterBuilder
 	mediaConverter common.MediaConverter
 }
@@ -37,11 +38,6 @@ func (t *tester) Configure(ctx context.Context, arguments common.Arguments, cont
 	for templateName, template := range container {
 		if !template.ContainsTags(arguments.Tags) {
 			continue
-		}
-
-		suite := TestSuite{
-			Name:      template.UID,
-			TestCases: make([]*TestCase, 0),
 		}
 
 		for statusCode, expectedResponseByMediaType := range template.ExpectedResponses {
@@ -66,12 +62,12 @@ func (t *tester) Configure(ctx context.Context, arguments common.Arguments, cont
 					tc.Err = err
 				}
 
-				suite.TestCases = append(suite.TestCases, tc)
+				t.cases = append(t.cases, tc)
 			}
 		}
-
-		t.suites = append(t.suites, suite)
 	}
+
+	sort.Sort(t.cases)
 }
 
 func (t *tester) createRequest(mediaTypeName string, template *common.Template) (*http.Request, error) {
@@ -94,20 +90,18 @@ func (t *tester) createRequest(mediaTypeName string, template *common.Template) 
 	return req, nil
 }
 
-func (t *tester) Test() (TestSuiteContainer, error) {
+func (t *tester) Test() (TestCaseContainer, error) {
 	client := &http.Client{
 		Timeout: time.Second * 15,
 	}
 
-	for _, suite := range t.suites {
-		for _, testCase := range suite.TestCases {
-			t.runTestCase(client, testCase)
-			processor := t.builder.Build(testCase)
-			processor.Process(testCase)
-		}
+	for _, testCase := range t.cases {
+		t.runTestCase(client, testCase)
+		processor := t.builder.Build(testCase)
+		processor.Process(testCase)
 	}
 
-	return t.suites, nil
+	return t.cases, nil
 }
 
 func (t *tester) runTestCase(client *http.Client, testCase *TestCase) {
@@ -153,23 +147,28 @@ func (t *tester) sendRequest(client *http.Client, testCase *TestCase) (*TestCase
 	return actualResult, nil
 }
 
-type TestSuiteContainer []TestSuite
+type TestCaseContainer []*TestCase
 
-func (c TestSuiteContainer) HasError() bool {
-	for _, suite := range c {
-		for _, testCase := range suite.TestCases {
-			if testCase.Status == TestCaseStatusFailure {
-				return true
-			}
+func (c TestCaseContainer) Len() int {
+	return len(c)
+}
+
+func (c TestCaseContainer) Less(i, j int) bool {
+	return c[i].Template.Priority > c[j].Template.Priority
+}
+
+func (c TestCaseContainer) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
+}
+
+func (c TestCaseContainer) HasError() bool {
+	for _, testCase := range c {
+		if testCase.Status == TestCaseStatusFailure {
+			return true
 		}
 	}
 
 	return false
-}
-
-type TestSuite struct {
-	Name      string
-	TestCases []*TestCase
 }
 
 type TestCase struct {
@@ -182,11 +181,7 @@ type TestCase struct {
 	ExpectedResult TestCaseResult
 	ActualResult   *TestCaseResult
 	path           cmp.Path
-	assertions     []*Assertion
-}
-
-func (t *TestCase) GetAssertions() []*Assertion {
-	return t.assertions
+	Assertions     []*Assertion
 }
 
 type TestCaseStatus int
