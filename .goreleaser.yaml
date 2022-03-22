@@ -4,9 +4,6 @@ builds:
     goos:
       - linux
       - darwin
-    ignore:
-      - goos: darwin
-        goarch: 386
     main: ./cmd/contractor
 checksum:
   name_template: 'checksums.txt'
