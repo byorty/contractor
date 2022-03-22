@@ -6,9 +6,9 @@ on:
       - '*'
 
 jobs:
-  releases-matrix:
+  releases:
     name: Release Go Binary
-    runs-on: macos-11
+    runs-on: macos-latest
     env:
       APPNAME: contractor
     steps:
