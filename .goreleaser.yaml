@@ -1,10 +1,10 @@
-env:
-  - CGO_ENABLED=1
-
 builds:
   - goos:
     - linux
     - darwin
+    goarch:
+    - 386
+    - amd64
     main: ./cmd/contractor
 checksum:
   name_template: 'checksums.txt'
