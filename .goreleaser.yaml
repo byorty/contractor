@@ -6,7 +6,7 @@ builds:
       - darwin
     ignore:
       - goos: darwin
-        goarch: amd64
+        goarch: 386
     main: ./cmd/contractor
 checksum:
   name_template: 'checksums.txt'
