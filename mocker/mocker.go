@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/byorty/contractor/common"
-	"github.com/byorty/contractor/logger"
 	"github.com/gorilla/mux"
 	"net/http"
 	"net/url"
@@ -21,14 +20,16 @@ func NewFxMocker(
 	dataCrawler common.DataCrawler,
 	expressionFactory common.ExpressionFactory,
 	mediaConverter common.MediaConverter,
-	logger logger.Logger,
+	loggerFactory common.LoggerFactory,
 ) Mocker {
 	return &mocker{
 		args:              args,
 		dataCrawler:       dataCrawler,
 		mediaConverter:    mediaConverter,
 		expressionFactory: expressionFactory,
-		logger:            logger,
+		commonLogger:      loggerFactory.CreateCommonLogger(),
+		successLogger:     loggerFactory.CreateSuccessLogger(),
+		errorLogger:       loggerFactory.CreateErrorLogger(),
 		router:            mux.NewRouter(),
 	}
 }
@@ -38,7 +39,9 @@ type mocker struct {
 	dataCrawler       common.DataCrawler
 	expressionFactory common.ExpressionFactory
 	mediaConverter    common.MediaConverter
-	logger            logger.Logger
+	commonLogger      common.Logger
+	successLogger     common.Logger
+	errorLogger       common.Logger
 	router            *mux.Router
 }
 
@@ -96,14 +99,14 @@ func (m *mocker) Configure(ctx context.Context, containers common.TemplateContai
 					return err
 				}
 
-				m.logger.PrintGroup("Request: %s", name)
-				m.logger.PrintSubGroup("Path: %s", template.Path)
-				m.logger.PrintSubGroup("Method: %s", strings.ToUpper(template.Method))
-				m.logger.PrintSubGroup("Status Code: %d", statusCode)
-				m.logger.PrintParameters("Header Parameters", template.HeaderParams)
-				m.logger.PrintParameters("Path Parameters", template.PathParams)
-				m.logger.PrintParameters("Query Parameters", template.QueryParams)
-				m.logger.PrintSubGroup("Body: %s", string(buf))
+				m.commonLogger.PrintGroup("Request: %s", name)
+				m.commonLogger.PrintParameter("Path", template.Path)
+				m.commonLogger.PrintParameter("Method", strings.ToUpper(template.Method))
+				m.commonLogger.PrintParameter("Status Code", statusCode)
+				m.commonLogger.PrintParameters("Header Parameters", template.HeaderParams)
+				m.commonLogger.PrintParameters("Path Parameters", template.PathParams)
+				m.commonLogger.PrintParameters("Query Parameters", template.QueryParams)
+				m.commonLogger.PrintParameter("Body", string(buf))
 
 				route.HandlerFunc(m.createHandler(name, mediaType, statusCode, buf))
 			}
@@ -114,12 +117,11 @@ func (m *mocker) Configure(ctx context.Context, containers common.TemplateContai
 }
 
 func (m *mocker) createHandler(name, mediaType string, statusCode int, buf []byte) func(http.ResponseWriter, *http.Request) {
-	successLogger := m.logger.ToSuccessColors()
 	return func(writer http.ResponseWriter, request *http.Request) {
 		writer.Header().Add(common.HeaderContentType, mediaType)
 		writer.WriteHeader(statusCode)
 		writer.Write(buf)
-		successLogger.PrintSubGroup("[SUCCESS] Example %s serve success", name)
+		m.successLogger.PrintSubGroupName("[SUCCESS] Example %s serve success", name)
 	}
 }
 
@@ -129,11 +131,9 @@ func (m *mocker) Run() error {
 		return err
 	}
 
-	m.logger.PrintGroup("Serve requests...")
-
-	errorLogger := m.logger.ToErrorColors()
+	m.commonLogger.PrintGroup("Serve requests...")
 	m.router.NotFoundHandler = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		errorLogger.PrintSubGroup("[FAILURE] Example not found for %s", request.URL.String())
+		m.errorLogger.PrintSubGroupName("[FAILURE] Example not found for %s", request.URL.String())
 	})
 	srv := &http.Server{
 		Handler: m.router,

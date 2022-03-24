@@ -7,4 +7,5 @@ var Constructors = fx.Provide(
 	NewFxWorkerContainer,
 	NewFxDataCrawler,
 	NewFxExpressionFactory,
+	NewFxLoggerFactory,
 )

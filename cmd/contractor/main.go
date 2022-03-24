@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/byorty/contractor/common"
 	"github.com/byorty/contractor/converter"
-	"github.com/byorty/contractor/logger"
 	"github.com/byorty/contractor/mocker"
 	"github.com/byorty/contractor/tester"
 )
@@ -14,7 +13,6 @@ func main() {
 	app := common.NewApplication(
 		common.Constructors,
 		converter.Constructors,
-		logger.Constructors,
 		tester.Constructors,
 		mocker.Constructors,
 	)

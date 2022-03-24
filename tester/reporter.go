@@ -2,7 +2,7 @@ package tester
 
 import (
 	"fmt"
-	"github.com/byorty/contractor/logger"
+	"github.com/byorty/contractor/common"
 	"strings"
 )
 
@@ -11,37 +11,41 @@ type Reporter interface {
 }
 
 func NewFxStdoutReporter(
-	l logger.Logger,
+	loggerFactory common.LoggerFactory,
 ) Reporter {
 	return &stdoutReporter{
-		logger: l,
+		commonLogger:  loggerFactory.CreateCommonLogger(),
+		successLogger: loggerFactory.CreateSuccessLogger(),
+		errorLogger:   loggerFactory.CreateErrorLogger(),
 	}
 }
 
 type stdoutReporter struct {
-	logger logger.Logger
+	commonLogger  common.Logger
+	successLogger common.Logger
+	errorLogger   common.Logger
 }
 
 func (r *stdoutReporter) Report(container TestCaseContainer) error {
-	errorLogger := r.logger.ToErrorColors()
 	for _, testCase := range container {
-		r.logger.PrintGroup("Test Case: %s", testCase.Name)
-		r.logger.PrintSubGroup("Path: %s", testCase.Template.Path)
-		r.logger.PrintSubGroup("Method: %s", strings.ToUpper(testCase.Template.Method))
-		r.logger.PrintSubGroup("Status Code: %d", testCase.ExpectedResult.StatusCode)
-		r.logger.PrintParameters("Header Parameters", testCase.Template.HeaderParams)
-		r.logger.PrintParameters("Path Parameters", testCase.Template.PathParams)
-		r.logger.PrintParameters("Query Parameters", testCase.Template.QueryParams)
-		r.logger.PrintParameters("Cookie Parameters", testCase.Template.CookieParams)
+		r.commonLogger.PrintGroup("Test Case: %s", testCase.Name)
+		r.commonLogger.PrintParameter("Path", testCase.Template.Path)
+		r.commonLogger.PrintParameter("Method", strings.ToUpper(testCase.Template.Method))
+		r.commonLogger.PrintParameter("Status Code", testCase.ExpectedResult.StatusCode)
+		r.commonLogger.PrintParameters("Header Parameters", testCase.Template.HeaderParams)
+		r.commonLogger.PrintParameters("Path Parameters", testCase.Template.PathParams)
+		r.commonLogger.PrintParameters("Query Parameters", testCase.Template.QueryParams)
+		r.commonLogger.PrintParameters("Cookie Parameters", testCase.Template.CookieParams)
 
 		if testCase.Status == TestCaseStatusSuccess {
-			r.logger.PrintSuccess()
+			r.successLogger.PrintParameter("Status", "Success")
 		} else {
-			r.logger.PrintFailure()
+			r.errorLogger.PrintParameter("Status", "Failure")
 			for _, assertion := range testCase.Assertions {
-				errorLogger.PrintSubGroup(fmt.Sprintf("%s:", assertion.Name))
-				errorLogger.PrintParameter("Expected", assertion.Expected)
-				errorLogger.PrintParameter("Actual", assertion.Actual)
+				r.errorLogger.PrintParameters(assertion.Name, map[string]interface{}{
+					common.LoggerReservedKeyExpected: assertion.Expected,
+					common.LoggerReservedKeyActual:   assertion.Actual,
+				})
 			}
 		}
 
