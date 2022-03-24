@@ -5,7 +5,6 @@ go 1.17
 require (
 	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/antonmedv/expr v1.9.0
-	github.com/buger/goterm v1.0.3
 	github.com/fatih/color v1.13.0
 	github.com/getkin/kin-openapi v0.87.0
 	github.com/ghodss/yaml v1.0.0
@@ -20,6 +19,7 @@ require (
 )
 
 require (
+	github.com/buger/goterm v1.0.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.5 // indirect
