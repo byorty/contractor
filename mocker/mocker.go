@@ -52,7 +52,7 @@ func (m *mocker) Configure(ctx context.Context, containers common.TemplateContai
 				route := m.router.Methods(template.Method)
 				route.Path(template.GetPath())
 
-				template.HeaderParams[common.HeaderContentType] = mediaType
+				template.HeaderParams[common.HeaderAccept] = mediaType
 				for headerName, headerValue := range template.HeaderParams {
 					route.Headers(headerName, fmt.Sprint(headerValue))
 				}
