@@ -81,7 +81,7 @@ func (t *tester) createRequest(mediaTypeName string, template *common.Template) 
 		return nil, err
 	}
 
-	req.Header.Add(common.HeaderContentType, mediaTypeName)
+	req.Header.Add(common.HeaderAccept, mediaTypeName)
 	for headerName, headerValue := range template.HeaderParams {
 		req.Header.Add(headerName, fmt.Sprint(headerValue))
 	}
