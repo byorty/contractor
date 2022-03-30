@@ -366,7 +366,7 @@ type containsAsserter struct {
 
 func (a *containsAsserter) Assert(value interface{}) error {
 	a.actual = value
-	if strings.Contains(value.(string), a.expected) {
+	if strings.Contains(fmt.Sprint(value), a.expected) {
 		return nil
 	}
 
