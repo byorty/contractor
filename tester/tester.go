@@ -5,11 +5,16 @@ import (
 	"context"
 	"fmt"
 	"github.com/byorty/contractor/common"
-	"github.com/google/go-cmp/cmp"
+	//"github.com/google/go-cmp/cmp"
 	"io/ioutil"
 	"net/http"
 	"sort"
+	"strings"
 	"time"
+)
+
+const (
+	variableExpr = "${%s}"
 )
 
 type Tester interface {
@@ -20,18 +25,22 @@ type Tester interface {
 func NewFxTester(
 	mediaConverter common.MediaConverter,
 	builder AsserterBuilder,
+	postProcessorFactory PostProcessorFactory,
 ) Tester {
 	return &tester{
-		cases:          make(TestCaseContainer, 0),
-		builder:        builder,
-		mediaConverter: mediaConverter,
+		cases:                make(TestCaseContainer, 0),
+		builder:              builder,
+		mediaConverter:       mediaConverter,
+		postProcessorFactory: postProcessorFactory,
 	}
 }
 
 type tester struct {
-	cases          TestCaseContainer
-	builder        AsserterBuilder
-	mediaConverter common.MediaConverter
+	cases                TestCaseContainer
+	builder              AsserterBuilder
+	mediaConverter       common.MediaConverter
+	postProcessorFactory PostProcessorFactory
+	variables            map[string]string
 }
 
 func (t *tester) Configure(ctx context.Context, arguments common.Arguments, container common.TemplateContainer) {
@@ -55,38 +64,49 @@ func (t *tester) Configure(ctx context.Context, arguments common.Arguments, cont
 					},
 				}
 
-				req, err := t.createRequest(mediaTypeName, template)
-				if err == nil {
-					tc.request = req
-				} else {
-					tc.Err = err
-				}
-
 				t.cases = append(t.cases, tc)
 			}
 		}
 	}
 
 	sort.Sort(t.cases)
+	t.variables = arguments.Variables
 }
 
-func (t *tester) createRequest(mediaTypeName string, template *common.Template) (*http.Request, error) {
-	buf, err := t.mediaConverter.Marshal(common.MediaType(mediaTypeName), template.Bodies[mediaTypeName])
+func (t *tester) createRequest(tc *TestCase) (*http.Request, error) {
+	template := tc.Template
+	mediaType := tc.ExpectedResult.Headers[common.HeaderContentType]
+	buf, err := t.mediaConverter.Marshal(common.MediaType(mediaType), tc.ExpectedResult.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(template.Method, template.GetUrl(), bytes.NewReader(buf))
+	url := template.GetUrl()
+	query := template.GetQueryParams().Encode()
+	headerParams := make(map[string]string)
+	for key, value := range t.variables {
+		url = strings.ReplaceAll(url, fmt.Sprintf(variableExpr, key), value)
+		query = strings.ReplaceAll(query, fmt.Sprintf(variableExpr, key), value)
+		buf = bytes.ReplaceAll(buf, []byte(fmt.Sprintf(variableExpr, key)), []byte(value))
+
+		for headerName, rawHeaderValue := range template.HeaderParams {
+			headerValue := fmt.Sprint(rawHeaderValue)
+			headerValue = strings.ReplaceAll(headerValue, fmt.Sprintf(variableExpr, key), value)
+			headerParams[headerName] = headerValue
+		}
+	}
+
+	req, err := http.NewRequest(template.Method, url, bytes.NewReader(buf))
 	if err != nil {
 		return nil, err
 	}
 
-	req.Header.Add(common.HeaderAccept, mediaTypeName)
-	for headerName, headerValue := range template.HeaderParams {
-		req.Header.Add(headerName, fmt.Sprint(headerValue))
+	req.URL.RawQuery = query
+	req.Header.Add(common.HeaderAccept, mediaType)
+	for headerName, headerValue := range headerParams {
+		req.Header.Add(headerName, headerValue)
 	}
 
-	req.URL.RawQuery = template.GetQueryParams().Encode()
 	return req, nil
 }
 
@@ -96,9 +116,27 @@ func (t *tester) Test() (TestCaseContainer, error) {
 	}
 
 	for _, testCase := range t.cases {
+		req, err := t.createRequest(testCase)
+		if err == nil {
+			testCase.request = req
+		} else {
+			testCase.Err = err
+		}
+
 		t.runTestCase(client, testCase)
 		processor := t.builder.Build(testCase)
 		processor.Process(testCase)
+
+		if testCase.Status == TestCaseStatusSuccess {
+			for _, def := range testCase.Template.PostProcessors {
+				postProcessor, err := t.postProcessorFactory.Create(def)
+				if err != nil {
+					continue
+				}
+
+				postProcessor.PostProcess(testCase)
+			}
+		}
 	}
 
 	return t.cases, nil
@@ -138,6 +176,7 @@ func (t *tester) sendRequest(client *http.Client, testCase *TestCase) (*TestCase
 		StatusCode: resp.StatusCode,
 		Headers:    make(map[string]string),
 		Body:       body,
+		Buf:        buf,
 	}
 
 	for headerName, _ := range testCase.ExpectedResult.Headers {
@@ -180,7 +219,6 @@ type TestCase struct {
 	Template       *common.Template
 	ExpectedResult TestCaseResult
 	ActualResult   *TestCaseResult
-	path           cmp.Path
 	Assertions     []*Assertion
 }
 
@@ -196,4 +234,5 @@ type TestCaseResult struct {
 	StatusCode int
 	Headers    map[string]string
 	Body       interface{}
+	Buf        []byte
 }

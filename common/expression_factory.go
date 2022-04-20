@@ -6,6 +6,8 @@ import (
 	"go.uber.org/fx"
 )
 
+//go:generate mockgen -source=$GOFILE -package=mocks -destination=mocks/$GOFILE
+
 type ExpressionType string
 
 const (

@@ -1,10 +1,8 @@
 package converter
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/byorty/contractor/common"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/ghodss/yaml"
@@ -16,9 +14,10 @@ import (
 )
 
 const (
-	xExamples = "x-examples"
-	xTagsName = "x-tags"
-	xPriority = "x-priority"
+	xExamples       = "x-examples"
+	xTagsName       = "x-tags"
+	xPriority       = "x-priority"
+	xPostProcessors = "x-post-processors"
 )
 
 type XOperationRequestExample struct {
@@ -32,10 +31,11 @@ type XOperationResponseExample struct {
 }
 
 type XOperationExample struct {
-	Request  XOperationRequestExample  `json:"request"`
-	Response XOperationResponseExample `json:"response"`
-	Tags     []string                  `json:"tags"`
-	Priority int                       `json:"priority"`
+	Request        XOperationRequestExample  `json:"request"`
+	Response       XOperationResponseExample `json:"response"`
+	Tags           []string                  `json:"tags"`
+	Priority       int                       `json:"priority"`
+	PostProcessors []common.PostProcessor    `json:"post_processors"`
 }
 
 type XOperationExamples map[string]XOperationExample
@@ -106,6 +106,10 @@ func (c *oaConverter) processOperation(arguments common.Arguments, pathName, htt
 					if priority, ok := example.Extensions[xPriority]; ok {
 						template.Priority = priority.(int)
 					}
+
+					if postProcessors, ok := example.Extensions[xPostProcessors]; ok {
+						template.PostProcessors = postProcessors.([]common.PostProcessor)
+					}
 				}
 			}
 		}
@@ -120,9 +124,8 @@ func (c *oaConverter) processXOperationExamples(arguments common.Arguments, oper
 
 	var operationExamples XOperationExamples
 	err := c.readAndUnmarshal(
-		arguments,
 		filepath.Join(
-			filepath.Dir(arguments.SpecFilename),
+			filepath.Dir(arguments.SpecLocation),
 			strings.Trim(string(examplesFilename.(json.RawMessage)), "\""),
 		),
 		&operationExamples,
@@ -206,8 +209,9 @@ func (c *oaConverter) processXOperationExamples(arguments common.Arguments, oper
 						Value: example.Response.Body,
 						ExtensionProps: openapi3.ExtensionProps{
 							Extensions: map[string]interface{}{
-								xTagsName: example.Tags,
-								xPriority: example.Priority,
+								xTagsName:       example.Tags,
+								xPriority:       example.Priority,
+								xPostProcessors: example.PostProcessors,
 							},
 						},
 					},
@@ -234,14 +238,10 @@ func (c *oaConverter) processParameter(baseUrl, pathName, httpMethod string, par
 	}
 }
 
-func (c *oaConverter) readAndUnmarshal(arguments common.Arguments, filename string, i interface{}) error {
+func (c *oaConverter) readAndUnmarshal(filename string, i interface{}) error {
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
-	}
-
-	for key, value := range arguments.Variables {
-		buf = bytes.ReplaceAll(buf, []byte(fmt.Sprintf("${%s}", key)), []byte(value))
 	}
 
 	switch filepath.Ext(filename) {

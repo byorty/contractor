@@ -1,6 +1,11 @@
 package common
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
+
+//go:generate mockgen -source=$GOFILE -package=mocks -destination=mocks/$GOFILE
 
 type DataCrawlerOption func(settings *DataCrawlerSettings)
 
@@ -23,13 +28,16 @@ func WithSkipCollections() DataCrawlerOption {
 	}
 }
 
-func withPrefix(prefix string) DataCrawlerOption {
+func WithPrefix(prefix string) DataCrawlerOption {
 	return func(settings *DataCrawlerSettings) {
-		if len(prefix) == 0 {
-			return
+		isArray := strings.HasPrefix(settings.key, "[") && strings.HasSuffix(settings.key, "]")
+		if len(prefix) > 0 {
+			if isArray {
+				settings.key = fmt.Sprintf("%s%s", prefix, settings.key)
+			} else {
+				settings.key = fmt.Sprintf("%s.%s", prefix, settings.key)
+			}
 		}
-
-		settings.key = fmt.Sprintf("%s.%s", prefix, settings.key)
 	}
 }
 
@@ -66,7 +74,7 @@ func (m dataCrawler) Walk(data interface{}, handler DataCrawlerHandler, opts ...
 		}
 	case []interface{}:
 		for i, item := range body {
-			m.walkItem(fmt.Sprint(i), item, handler, opts...)
+			m.walkItem(fmt.Sprintf("[%d]", i), item, handler, opts...)
 		}
 	}
 }
@@ -86,7 +94,7 @@ func (m dataCrawler) walkItem(key string, value interface{}, handler DataCrawler
 		o := make([]DataCrawlerOption, 0)
 		if settings.isJoinKeys {
 			o = append(o, WithJoinKeys())
-			o = append(o, withPrefix(settings.key))
+			o = append(o, WithPrefix(settings.key))
 		}
 
 		if settings.isSkipCollections {

@@ -25,7 +25,7 @@ func (c *oa2Converter) GetType() common.SpecType {
 
 func (c *oa2Converter) Convert(ctx context.Context, arguments common.Arguments) (common.TemplateContainer, error) {
 	var specV2 openapi2.T
-	err := c.readAndUnmarshal(arguments, arguments.SpecFilename, &specV2)
+	err := c.readAndUnmarshal(arguments.SpecLocation, &specV2)
 	if err != nil {
 		return nil, err
 	}

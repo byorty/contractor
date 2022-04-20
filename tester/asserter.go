@@ -3,6 +3,7 @@ package tester
 import (
 	"fmt"
 	"github.com/byorty/contractor/common"
+
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/pkg/errors"
 	"regexp"
@@ -33,6 +34,7 @@ func NewFxAsserterBuilder(
 		expressionFactory: expressionFactory,
 		dataCrawler:       dataCrawler,
 		dataCrawlerOpts: []common.DataCrawlerOption{
+			common.WithPrefix("$"),
 			common.WithJoinKeys(),
 			common.WithSkipCollections(),
 		},

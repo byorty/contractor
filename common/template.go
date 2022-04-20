@@ -18,6 +18,7 @@ type Template struct {
 	ExpectedResponses map[int]map[string]interface{}
 	Bodies            map[string]interface{}
 	Tags              []string
+	PostProcessors    []PostProcessor
 	Priority          int
 }
 
@@ -63,6 +64,11 @@ func (t *Template) ContainsTags(expectedTags []string) bool {
 	}
 
 	return false
+}
+
+type PostProcessor struct {
+	Type   string
+	Config map[string]interface{}
 }
 
 type TemplateContainer map[string]*Template

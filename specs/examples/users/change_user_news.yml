@@ -4,6 +4,11 @@ CHANGE_USER_NEWS_SUCCESS:                        # уникальное имя
     - user                                       #
     - dev                                        #
     - st                                         #
+  post_processors:
+    - type: JSON_EXTRACTOR
+      config:
+        variable_name: JWT_TOKEN
+        path: $.token
   request:                                       # описание запроса
     headers:                                     # описание заголовков запроса
       Authorization: ${VAR_AUTHORIZATION}        # поддержка переменных в примере

@@ -1,0 +1,671 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "127.0.0.1:9000",
+    "version": "2.4.0-beta.3+a6b18a2"
+  },
+  "host": "127.0.0.1:9000",
+  "basePath": "/api",
+  "schemes": [
+    "http"
+  ],
+  "securityDefinitions": {
+    "basicAuth": {
+      "type": "basic"
+    }
+  },
+  "security": [
+    {
+      "basicAuth": []
+    }
+  ],
+  "paths": {
+    "/search/universal/absolute": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "description": "Query (Lucene syntax)",
+            "in": "query",
+            "name": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "description": "Timerange start. See description for date format",
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "description": "Timerange end. See description for date format",
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "description": "Maximum number of messages to return.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "description": "Offset",
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "description": "Filter",
+            "in": "query",
+            "name": "filter",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "description": "Comma separated list of fields to return",
+            "in": "query",
+            "name": "fields",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "description": "Sorting (field:asc / field:desc)",
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "default": true,
+            "description": "Run decorators on search result",
+            "in": "query",
+            "name": "decorate",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "No response was specified",
+            "schema": {
+              "$ref": "#/definitions/SearchResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid timerange parameters provided."
+          }
+        },
+        "tags": [
+          "search/decorators"
+        ],
+        "description": "Search for messages using an absolute timerange, specified as from/to with format yyyy-MM-ddTHH:mm:ss.SSSZ (e.g. 2014-01-23T15:34:49.000Z) or yyyy-MM-dd HH:mm:ss.",
+        "operationId": "searchAbsolute",
+        "summary": "Message search with absolute timerange."
+      }
+    },
+    "/search/universal/relative": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "description": "Query (Lucene syntax)",
+            "in": "query",
+            "name": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "description": "Relative timeframe to search in. See method description.",
+            "in": "query",
+            "name": "range",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "description": "Maximum number of messages to return.",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "description": "Offset",
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "type": "integer"
+          },
+          {
+            "description": "Filter",
+            "in": "query",
+            "name": "filter",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "description": "Comma separated list of fields to return",
+            "in": "query",
+            "name": "fields",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "description": "Sorting (field:asc / field:desc)",
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "default": true,
+            "description": "Run decorators on search result",
+            "in": "query",
+            "name": "decorate",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "No response was specified",
+            "schema": {
+              "$ref": "#/definitions/SearchResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid timerange parameters provided."
+          }
+        },
+        "tags": [
+          "search/saved"
+        ],
+        "description": "Search for messages in a relative timerange, specified as seconds from now. Example: 300 means search from 5 minutes ago to now.",
+        "operationId": "searchRelative",
+        "summary": "Message search with relative timerange."
+      }
+    }
+  },
+  "definitions": {
+    "SearchResponse": {
+      "properties": {
+        "built_query": {
+          "type": "string"
+        },
+        "decoration_stats": {
+          "properties": {
+            "added_fields": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "changed_fields": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "removed_fields": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "type": "object"
+        },
+        "fields": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "from": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "messages": {
+          "items": {
+            "properties": {
+              "decoration_stats": {
+                "properties": {
+                  "added_fields": {
+                    "type": "object"
+                  },
+                  "changed_fields": {
+                    "type": "object"
+                  },
+                  "removed_fields": {
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              },
+              "highlight_ranges": {
+                "type": "object"
+              },
+              "index": {
+                "type": "string"
+              },
+              "message": {
+                "type": "object"
+              }
+            },
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "query": {
+          "type": "string"
+        },
+        "time": {
+          "type": "integer"
+        },
+        "to": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "total_results": {
+          "type": "integer"
+        },
+        "used_indices": {
+          "items": {
+            "properties": {
+              "begin": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "calculated_at": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "end": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "index_name": {
+                "type": "string"
+              },
+              "took_ms": {
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          },
+          "type": "array"
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "description": "Manage alarm callbacks (aka alert notifications)",
+      "name": "alerts/callbacks"
+    },
+    {
+      "description": "Manage stream alert conditions",
+      "name": "alerts/conditions"
+    },
+    {
+      "description": "Documentation of this API in JSON format.",
+      "name": "api-docs"
+    },
+    {
+      "description": "System information of all nodes in the cluster",
+      "name": "cluster"
+    },
+    {
+      "description": "Cluster-wide deflector handling",
+      "name": "cluster/deflector"
+    },
+    {
+      "description": "Cluster-wide input states",
+      "name": "cluster/inputstates"
+    },
+    {
+      "description": "Cluster-wide System Jobs",
+      "name": "cluster/jobs"
+    },
+    {
+      "description": "Cluster-wide Internal Graylog metrics",
+      "name": "cluster/metrics"
+    },
+    {
+      "description": "Cluster-wide access to internal Graylog loggers",
+      "name": "cluster/system/loggers"
+    },
+    {
+      "description": "Journal information of any nodes in the cluster",
+      "name": "cluster/{nodeId}/journal"
+    },
+    {
+      "description": "Cluster-wide status propagation for LB",
+      "name": "cluster/{nodeId}/lbstatus"
+    },
+    {
+      "description": "Cluster-wide Internal Graylog node metrics",
+      "name": "cluster/{nodeId}/metrics"
+    },
+    {
+      "description": "Plugin information for any node in the cluster",
+      "name": "cluster/{nodeId}/plugins"
+    },
+    {
+      "description": "Cluster-wide processing status control.",
+      "name": "cluster/{nodeId}/processing"
+    },
+    {
+      "description": "Shutdown gracefully nodes in cluster",
+      "name": "cluster/{nodeId}/shutdown"
+    },
+    {
+      "description": "Message counts",
+      "name": "count"
+    },
+    {
+      "description": "Manage dashboards",
+      "name": "dashboards"
+    },
+    {
+      "description": "Manage widgets of an existing dashboard",
+      "name": "dashboards/{dashboardId}/widgets"
+    },
+    {
+      "description": "Message blacklist filters",
+      "name": "filters/blacklist"
+    },
+    {
+      "description": "Single messages",
+      "name": "messages"
+    },
+    {
+      "description": "Manage collector configurations",
+      "name": "plugins/org.graylog.plugins.collector"
+    },
+    {
+      "description": "Management of Graylog Collectors.",
+      "name": "plugins/org.graylog.plugins.collector/collectors"
+    },
+    {
+      "description": "Get map data",
+      "name": "plugins/org.graylog.plugins.map/mapdata"
+    },
+    {
+      "description": "Stream connections of processing pipelines",
+      "name": "plugins/org.graylog.plugins.pipelineprocessor/system/pipelines/connections"
+    },
+    {
+      "description": "Pipelines for the pipeline message processor",
+      "name": "plugins/org.graylog.plugins.pipelineprocessor/system/pipelines/pipeline"
+    },
+    {
+      "description": "Rules for the pipeline message processor",
+      "name": "plugins/org.graylog.plugins.pipelineprocessor/system/pipelines/rule"
+    },
+    {
+      "description": "Simulate pipeline message processor",
+      "name": "plugins/org.graylog.plugins.pipelineprocessor/system/pipelines/simulate"
+    },
+    {
+      "description": "User roles",
+      "name": "roles"
+    },
+    {
+      "description": "Message search decorators",
+      "name": "search/decorators"
+    },
+    {
+      "description": "Saved searches",
+      "name": "search/saved"
+    },
+    {
+      "description": "Message search",
+      "name": "search/universal/absolute"
+    },
+    {
+      "description": "Message search",
+      "name": "search/universal/keyword"
+    },
+    {
+      "description": "Message search",
+      "name": "search/universal/relative"
+    },
+    {
+      "description": "Listing message sources (e.g. hosts sending logs)",
+      "name": "sources"
+    },
+    {
+      "description": "Manage streams",
+      "name": "streams"
+    },
+    {
+      "description": "Manage stream alerts for all streams",
+      "name": "streams/alerts"
+    },
+    {
+      "description": "Manage stream alerts for a given stream",
+      "name": "streams/{streamId}/alerts"
+    },
+    {
+      "description": "Manage stream alert conditions",
+      "name": "streams/{streamId}/alerts/conditions"
+    },
+    {
+      "description": "Manage stream alarm callbacks",
+      "name": "streams/{streamid}/alarmcallbacks"
+    },
+    {
+      "description": "Manage stream alarm callback histories",
+      "name": "streams/{streamid}/alerts/{alertId}/history"
+    },
+    {
+      "description": "Manage stream outputs for a given stream",
+      "name": "streams/{streamid}/outputs"
+    },
+    {
+      "description": "Manage stream rules",
+      "name": "streams/{streamid}/rules"
+    },
+    {
+      "description": "System information of this node.",
+      "name": "system"
+    },
+    {
+      "description": "Manage authentication providers",
+      "name": "system/authentication"
+    },
+    {
+      "description": "Content packs",
+      "name": "system/bundles"
+    },
+    {
+      "description": "Node discovery",
+      "name": "system/cluster"
+    },
+    {
+      "description": "Cluster stats",
+      "name": "system/cluster/stats"
+    },
+    {
+      "description": "Cluster traffic stats",
+      "name": "system/cluster/traffic"
+    },
+    {
+      "description": "Graylog Cluster Configuration",
+      "name": "system/cluster_config"
+    },
+    {
+      "description": "Message codec types of this node",
+      "name": "system/codecs/types"
+    },
+    {
+      "description": "Read-only access to configuration settings",
+      "name": "system/configuration"
+    },
+    {
+      "description": "For debugging local and cluster events.",
+      "name": "system/debug/events"
+    },
+    {
+      "description": "Index deflector management",
+      "name": "system/deflector"
+    },
+    {
+      "description": "Get list of message fields that exist.",
+      "name": "system/fields"
+    },
+    {
+      "description": "Getting Started guide",
+      "name": "system/gettingstarted"
+    },
+    {
+      "description": "Manage grok patterns",
+      "name": "system/grok"
+    },
+    {
+      "description": "Indexer cluster information",
+      "name": "system/indexer/cluster"
+    },
+    {
+      "description": "Indexer failures",
+      "name": "system/indexer/failures"
+    },
+    {
+      "description": "Index information",
+      "name": "system/indexer/indices"
+    },
+    {
+      "description": "Indexing overview",
+      "name": "system/indexer/overview"
+    },
+    {
+      "description": "Index sets",
+      "name": "system/indices/index_sets"
+    },
+    {
+      "description": "Index timeranges",
+      "name": "system/indices/ranges"
+    },
+    {
+      "description": "Index retention strategy settings",
+      "name": "system/indices/retention"
+    },
+    {
+      "description": "Index rotation strategy settings",
+      "name": "system/indices/rotation"
+    },
+    {
+      "description": "Message inputs",
+      "name": "system/inputs"
+    },
+    {
+      "description": "Message input types of this node",
+      "name": "system/inputs/types"
+    },
+    {
+      "description": "Extractors of an input",
+      "name": "system/inputs/{inputId}/extractors"
+    },
+    {
+      "description": "Static fields of an input",
+      "name": "system/inputs/{inputId}/staticfields"
+    },
+    {
+      "description": "Message input states of this node",
+      "name": "system/inputstates"
+    },
+    {
+      "description": "System Jobs",
+      "name": "system/jobs"
+    },
+    {
+      "description": "Message journal information of this node.",
+      "name": "system/journal"
+    },
+    {
+      "description": "Status propagation for load balancers",
+      "name": "system/lbstatus"
+    },
+    {
+      "description": "LDAP settings",
+      "name": "system/ldap"
+    },
+    {
+      "description": "Internal Graylog loggers",
+      "name": "system/loggers"
+    },
+    {
+      "description": "Lookup tables",
+      "name": "system/lookup"
+    },
+    {
+      "description": "Manage message processors",
+      "name": "system/messageprocessors"
+    },
+    {
+      "description": "Internal Graylog messages",
+      "name": "system/messages"
+    },
+    {
+      "description": "Internal Graylog metrics",
+      "name": "system/metrics"
+    },
+    {
+      "description": "Get history of metrics",
+      "name": "system/metrics/{metricName}/history"
+    },
+    {
+      "description": "Notifications generated by the system",
+      "name": "system/notifications"
+    },
+    {
+      "description": "Manage outputs",
+      "name": "system/outputs"
+    },
+    {
+      "description": "Retrieval of system permissions.",
+      "name": "system/permissions"
+    },
+    {
+      "description": "Plugin information",
+      "name": "system/plugins"
+    },
+    {
+      "description": "System processing status control.",
+      "name": "system/processing"
+    },
+    {
+      "description": "ServiceManager Status",
+      "name": "system/serviceManager"
+    },
+    {
+      "description": "Login for interactive user sessions",
+      "name": "system/sessions"
+    },
+    {
+      "description": "Shutdown this node gracefully.",
+      "name": "system/shutdown"
+    },
+    {
+      "description": "Node system stats",
+      "name": "system/stats"
+    },
+    {
+      "description": "Message throughput of this node",
+      "name": "system/throughput"
+    },
+    {
+      "description": "User accounts",
+      "name": "users"
+    }
+  ]
+}

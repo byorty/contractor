@@ -15,6 +15,7 @@ type WorkerType string
 const (
 	WorkerTypeMock WorkerType = "mock"
 	WorkerTypeTest WorkerType = "test"
+	WorkerTypeE2E  WorkerType = "e2e"
 )
 
 type Worker interface {

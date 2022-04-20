@@ -24,7 +24,7 @@ func (c *oa3Converter) GetType() common.SpecType {
 
 func (c *oa3Converter) Convert(ctx context.Context, arguments common.Arguments) (common.TemplateContainer, error) {
 	loader := &openapi3.Loader{Context: ctx}
-	spec, err := loader.LoadFromFile(arguments.SpecFilename)
+	spec, err := loader.LoadFromFile(arguments.SpecLocation)
 	if err != nil {
 		return nil, err
 	}

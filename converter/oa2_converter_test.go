@@ -20,10 +20,10 @@ func (s *OA2ConverterTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 	s.converter = converter.NewFxOa2Converter()
 	s.arguments = common.Arguments{
-		SpecFilename: s.makeSpecFilename("oa2.yml"),
+		SpecLocation: s.makeSpecFilename("oa2.yml"),
 	}
 }
 
 func (s *OA2ConverterTestSuite) Test() {
-	s.T().Log(s.arguments.SpecFilename)
+	s.T().Log(s.arguments.SpecLocation)
 }

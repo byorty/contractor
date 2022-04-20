@@ -8,6 +8,7 @@ import (
 var Constructors = fx.Provide(
 	NewFxTester,
 	NewFxAsserterBuilder,
+	NewFxPostProcessorFactory,
 	fx.Annotated{
 		Group:  "reporter",
 		Target: NewFxStdoutReporter,
@@ -103,6 +104,38 @@ var Constructors = fx.Provide(
 				Type:        common.ExpressionTypeAsserter,
 				Name:        "contains",
 				Constructor: NewContainsAsserter,
+			}
+		},
+	},
+	fx.Annotated{
+		Group: "post_processor_descriptor",
+		Target: func(args common.Arguments) PostProcessorDescriptor {
+			return PostProcessorDescriptor{
+				Type: "JSON_EXTRACTOR",
+				Constructor: func(config map[string]interface{}) (PostProcessor, error) {
+					return NewJsonExtractorPostProcessor(args, config)
+				},
+			}
+		},
+	},
+	NewFxAssertionFactory,
+	fx.Annotated{
+		Group: "assertion_descriptor",
+		Target: func(
+			logger common.Logger,
+			dataCrawler common.DataCrawler,
+			expressionFactory common.ExpressionFactory,
+		) AssertionDescriptor {
+			return AssertionDescriptor{
+				Type: "json_contains",
+				Constructor: func(definition interface{}) Assertion2 {
+					return NewJsonContainsAssertion(
+						logger,
+						dataCrawler,
+						expressionFactory,
+						definition.(map[string]interface{}),
+					)
+				},
 			}
 		},
 	},
