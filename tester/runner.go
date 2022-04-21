@@ -4,20 +4,26 @@ import "github.com/byorty/contractor/common"
 
 //go:generate mockgen -source=$GOFILE -package=mocks -destination=mocks/$GOFILE
 
-type TestRunner interface {
-	Setup(name string, testCase TestCaseDefinition)
-	Run(assertions Assertion2List) TestRunnerReportList
+type Runner interface {
+	Setup(testCase TestCase2)
+	Run(assertions Asserter2List) RunnerReportList
 }
 
-type TestRunnerReportList struct {
-	common.List[TestRunnerReport]
+type RunnerReportList struct {
+	common.List[RunnerReport]
 }
 
-func NewTestRunnerReportList() TestRunnerReportList {
-	return TestRunnerReportList{common.NewList[TestRunnerReport]()}
+func NewRunnerReportList() RunnerReportList {
+	return RunnerReportList{common.NewList[RunnerReport]()}
 }
 
-type TestRunnerReport struct {
+type RunnerReportDetail struct {
+	Name string
+	Data interface{}
+}
+
+type RunnerReport struct {
 	Name       string
+	Details    []RunnerReportDetail
 	Assertions AssertionResultList
 }

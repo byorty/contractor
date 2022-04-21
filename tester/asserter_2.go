@@ -8,29 +8,29 @@ import (
 
 //go:generate mockgen -source=$GOFILE -package=mocks -destination=mocks/$GOFILE
 
-type AssertionConstructor func(definition interface{}) Assertion2
+type Asserter2Constructor func(definition interface{}) Asserter2
 
-type AssertionDescriptor struct {
+type Asserter2Descriptor struct {
 	Type        string
-	Constructor AssertionConstructor
+	Constructor Asserter2Constructor
 }
 
-type AssertionFactoryIn struct {
+type Assertion2FactoryIn struct {
 	fx.In
-	Descriptors []AssertionDescriptor `group:"assertion_descriptor"`
+	Descriptors []Asserter2Descriptor `group:"assertion_descriptor"`
 }
 
-type AssertionFactory interface {
-	Create(name string, definition interface{}) (Assertion2, error)
+type Assertion2Factory interface {
+	Create(name string, definition interface{}) (Asserter2, error)
 }
 
 type assertionFactory struct {
-	constructors map[string]AssertionConstructor
+	constructors map[string]Asserter2Constructor
 }
 
-func NewFxAssertionFactory(in AssertionFactoryIn) AssertionFactory {
+func NewFxAssertionFactory(in Assertion2FactoryIn) Assertion2Factory {
 	f := &assertionFactory{
-		constructors: make(map[string]AssertionConstructor),
+		constructors: make(map[string]Asserter2Constructor),
 	}
 
 	for _, descriptor := range in.Descriptors {
@@ -40,7 +40,7 @@ func NewFxAssertionFactory(in AssertionFactoryIn) AssertionFactory {
 	return f
 }
 
-func (f *assertionFactory) Create(name string, definition interface{}) (Assertion2, error) {
+func (f *assertionFactory) Create(name string, definition interface{}) (Asserter2, error) {
 	constructor, ok := f.constructors[name]
 	if !ok {
 		return nil, errors.Errorf("assertion %s is not found", name)
@@ -49,20 +49,16 @@ func (f *assertionFactory) Create(name string, definition interface{}) (Assertio
 	return constructor(definition), nil
 }
 
-type Assertion2List struct {
-	common.List[Assertion2]
+type Asserter2List struct {
+	common.List[Asserter2]
 }
 
-func NewAssertion2List(assertions ...Assertion2) Assertion2List {
-	return Assertion2List{common.NewListFromSlice[Assertion2](assertions...)}
+func NewAsserter2List(assertions ...Asserter2) Asserter2List {
+	return Asserter2List{common.NewListFromSlice[Asserter2](assertions...)}
 }
 
-type Assertion2 interface {
-	Assert(data interface{}) (AssertionResultList, error)
-}
-
-type AssertionComparator interface {
-	Compare()
+type Asserter2 interface {
+	Assert(data interface{}) AssertionResultList
 }
 
 type AssertionResultStatus int
@@ -73,6 +69,7 @@ const (
 )
 
 type AssertionResult struct {
+	Name     string
 	Status   AssertionResultStatus
 	Expected string
 	Actual   string

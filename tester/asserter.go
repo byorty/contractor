@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+//go:generate mockgen -source=$GOFILE -package=mocks -destination=mocks/$GOFILE
+
 type Assertion struct {
 	Name       string
 	Expected   string

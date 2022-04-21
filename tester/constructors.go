@@ -18,6 +18,10 @@ var Constructors = fx.Provide(
 		Target: NewFxWorker,
 	},
 	fx.Annotated{
+		Group:  "worker",
+		Target: NewFxWorker2,
+	},
+	fx.Annotated{
 		Group: "expression_descriptor",
 		Target: func() common.ExpressionDescriptor {
 			return common.ExpressionDescriptor{
@@ -119,24 +123,26 @@ var Constructors = fx.Provide(
 		},
 	},
 	NewFxAssertionFactory,
-	fx.Annotated{
-		Group: "assertion_descriptor",
-		Target: func(
-			logger common.Logger,
-			dataCrawler common.DataCrawler,
-			expressionFactory common.ExpressionFactory,
-		) AssertionDescriptor {
-			return AssertionDescriptor{
-				Type: "json_contains",
-				Constructor: func(definition interface{}) Assertion2 {
-					return NewJsonContainsAssertion(
-						logger,
-						dataCrawler,
-						expressionFactory,
-						definition.(map[string]interface{}),
-					)
-				},
-			}
-		},
-	},
+	NewFxEngineFactory,
+	NewFxReporter2Factory,
+	//fx.Annotated{
+	//	Group: "assertion_descriptor",
+	//	Target: func(
+	//		logger common.Logger,
+	//		dataCrawler common.DataCrawler,
+	//		expressionFactory common.ExpressionFactory,
+	//	) Asserter2Descriptor {
+	//		return Asserter2Descriptor{
+	//			Type: "json_contains",
+	//			Constructor: func(definition interface{}) Asserter2 {
+	//				return NewJsonContainsAssertion(
+	//					logger,
+	//					dataCrawler,
+	//					expressionFactory,
+	//					definition.(map[string]interface{}),
+	//				)
+	//			},
+	//		}
+	//	},
+	//},
 )

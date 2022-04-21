@@ -1,0 +1,23 @@
+testers:
+  graylog:
+    url: https://graylog.setpartnerstv.ru/api
+    username: 1geh46b37k3mib77lj8lt401mkah24d1alomosish521tsfqsuaf
+    password: token
+    spec_dir: ${PROJECT_DIR}/specs/e2e
+  open_api:
+    spec_type: oa2
+    spec_filename: ${PROJECT_DIR}/specs/swagger.yml
+    url:
+
+mockers:
+  open_api:
+    spec_type: oa2
+    spec_filename: ${PROJECT_DIR}/specs/swagger.yml
+    url:
+    cert_filename:
+    key_filename:
+
+reporters:
+  console: {}
+
+variables:

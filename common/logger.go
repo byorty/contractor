@@ -65,6 +65,7 @@ func (f *loggerFactory) createLogger(l *logger) Logger {
 			EncodeLevel:    zapcore.LowercaseLevelEncoder,
 			EncodeTime:     zapcore.RFC3339NanoTimeEncoder,
 			EncodeDuration: zapcore.SecondsDurationEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder,
 		},
 	}
 	baseLogger, _ := cfg.Build()

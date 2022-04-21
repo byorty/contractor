@@ -10,4 +10,5 @@ var Constructors = fx.Provide(
 	NewFxDataCrawler,
 	NewFxExpressionFactory,
 	NewFxLoggerFactory,
+	NewFxConfigProviderFactory,
 )

@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"github.com/byorty/contractor/common"
 	"github.com/byorty/contractor/converter"
-	"github.com/byorty/contractor/e2e"
 	"github.com/byorty/contractor/mocker"
 	"github.com/byorty/contractor/tester"
+	"github.com/byorty/contractor/tester/assertion"
+	"github.com/byorty/contractor/tester/graylog"
+	"github.com/byorty/contractor/tester/reporter"
 )
 
 func main() {
@@ -16,7 +18,9 @@ func main() {
 		converter.Constructors,
 		tester.Constructors,
 		mocker.Constructors,
-		e2e.Constructors,
+		assertion.Constructors,
+		graylog.Constructors,
+		reporter.Constructors,
 	)
 	app.Run(func(
 		ctx context.Context,

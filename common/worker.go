@@ -13,9 +13,10 @@ var (
 type WorkerType string
 
 const (
-	WorkerTypeMock WorkerType = "mock"
-	WorkerTypeTest WorkerType = "test"
-	WorkerTypeE2E  WorkerType = "e2e"
+	WorkerTypeMock  WorkerType = "mock"
+	WorkerTypeTest  WorkerType = "test"
+	WorkerTypeTest2 WorkerType = "test2"
+	WorkerTypeE2E   WorkerType = "e2e"
 )
 
 type Worker interface {

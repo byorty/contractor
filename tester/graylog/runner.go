@@ -1,4 +1,4 @@
-package runner
+package graylog
 
 import (
 	"fmt"
@@ -9,30 +9,28 @@ import (
 	"github.com/go-openapi/runtime"
 )
 
-func NewFxGraylog(
+func NewRunner(
 	logger common.Logger,
-	assertionFactory tester.AssertionFactory,
 	graylogClient client.GraylogClient,
-) tester.TestRunner {
-	return &graylog{
-		logger:           logger.Named("graylog_runner"),
-		assertionFactory: assertionFactory,
-		graylogClient:    graylogClient,
-		authInfo:         nil,
+	authInfo runtime.ClientAuthInfoWriter,
+) tester.Runner {
+	return &runner{
+		logger:        logger.Named("graylog_test_runner"),
+		graylogClient: graylogClient,
+		authInfo:      authInfo,
 	}
 }
 
-type graylog struct {
-	logger           common.Logger
-	assertionFactory tester.AssertionFactory
-	graylogClient    client.GraylogClient
-	request          *saved.SearchRelativeParams
-	authInfo         runtime.ClientAuthInfoWriter
-	name             string
+type runner struct {
+	logger        common.Logger
+	graylogClient client.GraylogClient
+	request       *saved.SearchRelativeParams
+	authInfo      runtime.ClientAuthInfoWriter
+	testCase      tester.TestCase2
 }
 
-func (r *graylog) Setup(name string, testCase tester.TestCaseDefinition) {
-	r.name = name
+func (r *runner) Setup(testCase tester.TestCase2) {
+	r.testCase = testCase
 	sorting := "timestamp:asc"
 	r.request = &saved.SearchRelativeParams{
 		Query: fmt.Sprintf("%s", testCase.Setup.Query),
@@ -41,8 +39,8 @@ func (r *graylog) Setup(name string, testCase tester.TestCaseDefinition) {
 	}
 }
 
-func (r *graylog) Run(assertions tester.Assertion2List) tester.TestRunnerReportList {
-	reports := tester.NewTestRunnerReportList()
+func (r *runner) Run(assertions tester.Asserter2List) tester.RunnerReportList {
+	reports := tester.NewRunnerReportList()
 	resp, err := r.graylogClient.SearchRelative(r.request, r.authInfo)
 	if err != nil {
 		r.logger.Error(err)
@@ -52,8 +50,8 @@ func (r *graylog) Run(assertions tester.Assertion2List) tester.TestRunnerReportL
 			Expected: "graylog response present",
 			Actual:   err.Error(),
 		})
-		reports.Add(tester.TestRunnerReport{
-			Name:       r.name,
+		reports.Add(tester.RunnerReport{
+			Name:       r.testCase.Name,
 			Assertions: assertionsResults,
 		})
 		return reports
@@ -90,7 +88,7 @@ func (r *graylog) Run(assertions tester.Assertion2List) tester.TestRunnerReportL
 				continue
 			}
 
-			results, _ := assertion.Assert(message)
+			results := assertion.Assert(message)
 			correlationResults.Add(results.Entries()...)
 			if assertionIterator.HasNext() && results.IsPassed() {
 				assertion = assertionIterator.Next()
@@ -102,8 +100,8 @@ func (r *graylog) Run(assertions tester.Assertion2List) tester.TestRunnerReportL
 
 		if correlationResults.IsPassed() {
 			reports.RemoveAll()
-			reports.Add(tester.TestRunnerReport{
-				Name:       r.name,
+			reports.Add(tester.RunnerReport{
+				Name:       r.testCase.Name,
 				Assertions: correlationResults,
 			})
 			return reports
@@ -112,20 +110,20 @@ func (r *graylog) Run(assertions tester.Assertion2List) tester.TestRunnerReportL
 		if correlationResults.Len() == 0 {
 			correlationResults.Add(tester.AssertionResult{
 				Status:   tester.AssertionResultStatusFailure,
-				Expected: "graylog messages present",
+				Expected: "runner messages present",
 				Actual:   "nil",
 			})
 		}
 
-		reports.Add(tester.TestRunnerReport{
-			Name:       fmt.Sprintf("%s#%s", r.name, correlationId),
+		reports.Add(tester.RunnerReport{
+			Name:       fmt.Sprintf("%s#%s", r.testCase.Name, correlationId),
 			Assertions: correlationResults,
 		})
 	}
 
 	if reports.Len() == 0 {
-		reports.Add(tester.TestRunnerReport{
-			Name: r.name,
+		reports.Add(tester.RunnerReport{
+			Name: r.testCase.Name,
 			Assertions: tester.NewAssertionResultList(tester.AssertionResult{
 				Status:   tester.AssertionResultStatusFailure,
 				Expected: "graylog messages present",

@@ -7,6 +7,10 @@ import (
 	"github.com/spyzhov/ajson"
 )
 
+const (
+	jsonContainsName = "Json Contains"
+)
+
 type jsonContains struct {
 	logger            common.Logger
 	dataCrawler       common.DataCrawler
@@ -19,8 +23,8 @@ func NewJsonContains(
 	logger common.Logger,
 	dataCrawler common.DataCrawler,
 	expressionFactory common.ExpressionFactory,
-	definition map[string]interface{},
-) tester.Assertion2 {
+	definition interface{},
+) tester.Asserter2 {
 	expressions := make(map[string]string)
 	dataCrawler.Walk(
 		definition,
@@ -38,23 +42,25 @@ func NewJsonContains(
 	}
 }
 
-func (a *jsonContains) Assert(data interface{}) (tester.AssertionResultList, error) {
-	root, err := ajson.Unmarshal(data.([]byte))
+func (a *jsonContains) Assert(data interface{}) tester.AssertionResultList {
+	root, err := ajson.Unmarshal([]byte(fmt.Sprint(data)))
 	list := tester.NewAssertionResultList()
 	if err != nil {
 		list.Add(tester.AssertionResult{
+			Name:     jsonContainsName,
 			Status:   tester.AssertionResultStatusFailure,
 			Expected: "json present",
 			Actual:   err.Error(),
 		})
 
-		return list, nil
+		return list
 	}
 
 	for path, expression := range a.expressions {
 		output, err := a.expressionFactory.Create(common.ExpressionTypeAsserter, expression)
 		if err != nil {
 			list.Add(tester.AssertionResult{
+				Name:   jsonContainsName,
 				Status: tester.AssertionResultStatusFailure,
 				Actual: err.Error(),
 			})
@@ -65,6 +71,7 @@ func (a *jsonContains) Assert(data interface{}) (tester.AssertionResultList, err
 		nodes, err := root.JSONPath(path)
 		if err != nil {
 			list.Add(tester.AssertionResult{
+				Name:     jsonContainsName,
 				Status:   tester.AssertionResultStatusFailure,
 				Expected: asserter.GetExpected(),
 				Actual:   err.Error(),
@@ -74,6 +81,7 @@ func (a *jsonContains) Assert(data interface{}) (tester.AssertionResultList, err
 
 		if len(nodes) == 0 {
 			list.Add(tester.AssertionResult{
+				Name:     jsonContainsName,
 				Status:   tester.AssertionResultStatusFailure,
 				Expected: asserter.GetExpected(),
 				Actual:   "nil",
@@ -84,6 +92,7 @@ func (a *jsonContains) Assert(data interface{}) (tester.AssertionResultList, err
 		value, _ := nodes[0].Value()
 		err = asserter.Assert(value)
 		result := tester.AssertionResult{
+			Name:     jsonContainsName,
 			Status:   tester.AssertionResultStatusFailure,
 			Expected: asserter.GetExpected(),
 			Actual:   asserter.GetActual(),
@@ -96,5 +105,5 @@ func (a *jsonContains) Assert(data interface{}) (tester.AssertionResultList, err
 		list.Add(result)
 	}
 
-	return list, nil
+	return list
 }

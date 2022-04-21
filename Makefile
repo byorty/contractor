@@ -58,3 +58,6 @@ test-graylog:
 #sys.qa
 #5xVa6tsM2dvstFU
 #1geh46b37k3mib77lj8lt401mkah24d1alomosish521tsfqsuaf
+
+test-c2p:
+	curl -i -X POST -H 'Content-Type: application/json' -H 'Authorization: eea00e6ff92930a4b876c8e6c975c62d' 'https://vp.voicepassword.ru/api/voice-password/send/' -d '{"number":"+79255308012","flashcall": {"code": 1234}}'
