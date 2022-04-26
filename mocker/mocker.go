@@ -1,6 +1,7 @@
 package mocker
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/byorty/contractor/common"
@@ -8,6 +9,10 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+)
+
+const (
+	variableExpr = "${%s}"
 )
 
 type Mocker interface {
@@ -49,18 +54,6 @@ func (m *mocker) Configure(ctx context.Context, containers common.TemplateContai
 	for name, template := range containers {
 		for statusCode, exampleContainer := range template.ExpectedResponses {
 			for mediaType, example := range exampleContainer {
-				route := m.router.Methods(template.Method)
-				route.Path(template.GetPath())
-
-				template.HeaderParams[common.HeaderAccept] = mediaType
-				for headerName, headerValue := range template.HeaderParams {
-					route.Headers(headerName, fmt.Sprint(headerValue))
-				}
-
-				for queryName, queryValue := range template.QueryParams {
-					route.Queries(queryName, fmt.Sprint(queryValue))
-				}
-
 				m.dataCrawler.Walk(example, func(_ string, data interface{}) {
 					switch d := data.(type) {
 					case map[string]interface{}:
@@ -97,6 +90,34 @@ func (m *mocker) Configure(ctx context.Context, containers common.TemplateContai
 				buf, err := m.mediaConverter.Marshal(common.MediaType(mediaType), example)
 				if err != nil {
 					return err
+				}
+
+				path := template.GetPath()
+				headerParams := make(map[string]string)
+				queryParams := make(map[string]string)
+				for key, value := range m.args.Variables {
+					path = strings.ReplaceAll(path, fmt.Sprintf(variableExpr, key), value)
+					buf = bytes.ReplaceAll(buf, []byte(fmt.Sprintf(variableExpr, key)), []byte(value))
+
+					for headerName, headerValue := range template.HeaderParams {
+						headerParams[headerName] = strings.ReplaceAll(fmt.Sprint(headerValue), fmt.Sprintf(variableExpr, key), value)
+					}
+
+					for queryName, queryValue := range template.QueryParams {
+						queryParams[queryName] = strings.ReplaceAll(fmt.Sprint(queryValue), fmt.Sprintf(variableExpr, key), value)
+					}
+				}
+
+				route := m.router.Methods(template.Method)
+				route.Path(path)
+
+				template.HeaderParams[common.HeaderAccept] = mediaType
+				for headerName, headerValue := range headerParams {
+					route.Headers(headerName, fmt.Sprint(headerValue))
+				}
+
+				for queryName, queryValue := range queryParams {
+					route.Queries(queryName, fmt.Sprint(queryValue))
 				}
 
 				m.commonLogger.PrintGroup("Request: %s", name)

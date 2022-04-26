@@ -16,7 +16,7 @@ type DataCrawlerTestSuite struct {
 
 func (s *DataCrawlerTestSuite) TestWalk() {
 	data := map[string]interface{}{
-		"k1":    "a",
+		"$.k1":  "a",
 		"k2":    1,
 		"slice": []interface{}{1, 2, 3},
 		"sliceMap": []interface{}{
@@ -47,7 +47,7 @@ func (s *DataCrawlerTestSuite) TestWalk() {
 	}, common.WithPrefix("$"), common.WithJoinKeys(), common.WithSkipCollections())
 
 	s.Len(flatData, 14)
-	s.Equal(data["k1"], flatData["$.k1"])
+	s.Equal(data["$.k1"], flatData["$.k1"])
 	s.Equal(data["k2"], flatData["$.k2"])
 	s.Equal(data["slice"].([]interface{})[0], flatData["$.slice[0]"])
 	s.Equal(data["slice"].([]interface{})[1], flatData["$.slice[1]"])

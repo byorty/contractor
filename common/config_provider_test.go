@@ -34,7 +34,8 @@ type ConfigProviderSuite struct {
 func (s *ConfigProviderSuite) TestPopulate() {
 	reader := strings.NewReader("a: {b: bar, c: {d: true, f: 12}}")
 
-	provider, err := common.NewConfigProviderByOptions(config.Source(reader))
+	factory := common.NewFxConfigProviderFactory()
+	provider, err := factory.CreateByOptions(config.Source(reader))
 	s.Nil(err)
 
 	var a A
@@ -67,7 +68,8 @@ a: 1
 b: "$VAR_B"
 `)
 
-	provider, err := common.NewConfigProviderByOptions(config.Source(reader))
+	factory := common.NewFxConfigProviderFactory()
+	provider, err := factory.CreateByOptions(config.Source(reader))
 	s.Nil(err)
 
 	s.Nil(provider.PopulateByKey("a", &a))
@@ -90,7 +92,7 @@ rss:
 		M    int    `yaml:"m"`
 	}
 	c := make([]Rss, 0)
-	provider, err = common.NewConfigProviderByOptions(config.Source(readerArray))
+	provider, err = factory.CreateByOptions(config.Source(readerArray))
 	s.Nil(err)
 	err = provider.PopulateByKey("rss", &c)
 	s.Nil(err)

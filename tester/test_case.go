@@ -21,21 +21,37 @@ func (l *TestCase2List) ImportFromMap(testCaseMap common.Map[string, TestCase2])
 }
 
 type TestCase2 struct {
-	Name string
-	Tags []string
-	//PostProcessors []common.PostProcessor
-	Priority   int
-	Setup      TestCase2Setup
-	Assertions []Assertion2
+	Name       string         `yaml:"name"`
+	Tags       []string       `yaml:"tags"`
+	Priority   int            `yaml:"priority"`
+	Setup      TestCase2Setup `yaml:"setup"`
+	Assertions []Assertion2   `yaml:"assertions"`
+}
+
+func (t *TestCase2) ContainsTags(expectedTags []string) bool {
+	if len(expectedTags) == 0 {
+		return true
+	}
+
+	for _, expectedTag := range expectedTags {
+		for _, actualTag := range t.Tags {
+			if expectedTag == actualTag {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 type TestCase2Setup struct {
-	Query string
-	Range time.Duration
+	Query   string        `yaml:"query"`
+	Range   time.Duration `yaml:"range"`
+	Trigger string        `yaml:"trigger"`
 }
 
 type Assertion2 struct {
-	Name   string
-	Type   string
-	Assert interface{}
+	Name   string      `yaml:"name"`
+	Type   string      `yaml:"type"`
+	Assert interface{} `yaml:"assert"`
 }

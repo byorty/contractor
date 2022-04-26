@@ -1,14 +1,15 @@
 package graylog_test
 
 import (
+	"context"
 	"fmt"
 	"github.com/Pallinder/go-randomdata"
 	"github.com/byorty/contractor/common"
 	"github.com/byorty/contractor/tester"
-	"github.com/byorty/contractor/tester/client/graylog/models"
-	"github.com/byorty/contractor/tester/client/graylog/saved"
-	cm "github.com/byorty/contractor/tester/client/mocks"
 	"github.com/byorty/contractor/tester/graylog"
+	"github.com/byorty/contractor/tester/graylog/client/models"
+	"github.com/byorty/contractor/tester/graylog/client/saved"
+	gm "github.com/byorty/contractor/tester/graylog/mocks"
 	tm "github.com/byorty/contractor/tester/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
@@ -22,7 +23,7 @@ func TestGraylogSuite(t *testing.T) {
 
 type GraylogSuite struct {
 	common.Suite
-	graylogClient  *cm.MockGraylogClient
+	graylogClient  *gm.MockClient
 	runner         tester.Runner
 	correlationId1 string
 	correlationId2 string
@@ -39,8 +40,9 @@ func (s *GraylogSuite) SetupTest() {
 	s.testCase = tester.TestCase2{
 		Name: randomdata.Alphanumeric(32),
 	}
-	s.graylogClient = cm.NewMockGraylogClient(s.Ctrl)
+	s.graylogClient = gm.NewMockClient(s.Ctrl)
 	s.runner = graylog.NewRunner(
+		context.Background(),
 		common.NewFxLoggerFactory().CreateCommonLogger(),
 		s.graylogClient,
 		nil,

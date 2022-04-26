@@ -9,6 +9,7 @@ var Constructors = fx.Provide(
 	NewFxTester,
 	NewFxAsserterBuilder,
 	NewFxPostProcessorFactory,
+	common.NewFxConfig,
 	fx.Annotated{
 		Group:  "reporter",
 		Target: NewFxStdoutReporter,

@@ -12,7 +12,7 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
 
-	"github.com/byorty/contractor/tester/client/graylog/models"
+	"github.com/byorty/contractor/tester/graylog/client/models"
 )
 
 // SearchRelativeReader is a Reader for the SearchRelative structure.

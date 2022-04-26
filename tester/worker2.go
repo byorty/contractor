@@ -6,8 +6,9 @@ import (
 )
 
 func NewFxWorker2(
-	cfg *Config,
-	logger common.Logger,
+	cfg *common.Config,
+	args common.Arguments,
+	loggerFactory common.LoggerFactory,
 	configProviderFactory common.ConfigProviderFactory,
 	testEngineFactory EngineFactory,
 	assertionFactory Assertion2Factory,
@@ -15,7 +16,8 @@ func NewFxWorker2(
 ) common.Worker {
 	return &worker2{
 		cfg:                   cfg,
-		logger:                logger.Named("worker"),
+		args:                  args,
+		logger:                loggerFactory.CreateCommonLogger().Named("worker2"),
 		configProviderFactory: configProviderFactory,
 		testEngineFactory:     testEngineFactory,
 		assertionFactory:      assertionFactory,
@@ -26,7 +28,8 @@ func NewFxWorker2(
 }
 
 type worker2 struct {
-	cfg                   *Config
+	cfg                   *common.Config
+	args                  common.Arguments
 	logger                common.Logger
 	configProviderFactory common.ConfigProviderFactory
 	testEngineFactory     EngineFactory
@@ -73,10 +76,19 @@ func (w *worker2) Configure(ctx context.Context, arguments common.Arguments) err
 func (w *worker2) Run() error {
 	testRunReports := NewRunnerReportList()
 	for _, engine := range w.engines.Entries() {
-		for _, testCase := range engine.GetTestCase2List().Entries() {
+		testCases := engine.GetTestCase2List()
+		testCases.Sort(func(a, b TestCase2) bool {
+			return a.Priority < b.Priority
+		})
+
+		for _, testCase := range testCases.Entries() {
+			if !testCase.ContainsTags(w.args.Tags) {
+				continue
+			}
+
 			asserters := NewAsserter2List()
 			for _, assertion := range testCase.Assertions {
-				asserter, err := w.assertionFactory.Create(assertion.Name, assertion.Assert)
+				asserter, err := w.assertionFactory.Create(assertion)
 				if err != nil {
 					w.logger.Error(err)
 					return err

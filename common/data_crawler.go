@@ -31,7 +31,7 @@ func WithSkipCollections() DataCrawlerOption {
 func WithPrefix(prefix string) DataCrawlerOption {
 	return func(settings *DataCrawlerSettings) {
 		isArray := strings.HasPrefix(settings.key, "[") && strings.HasSuffix(settings.key, "]")
-		if len(prefix) > 0 {
+		if len(prefix) > 0 && !strings.HasPrefix(settings.key, prefix) {
 			if isArray {
 				settings.key = fmt.Sprintf("%s%s", prefix, settings.key)
 			} else {
@@ -72,6 +72,10 @@ func (m dataCrawler) Walk(data interface{}, handler DataCrawlerHandler, opts ...
 		for key, value := range body {
 			m.walkItem(key, value, handler, opts...)
 		}
+	case map[interface{}]interface{}:
+		for key, value := range body {
+			m.walkItem(fmt.Sprint(key), value, handler, opts...)
+		}
 	case []interface{}:
 		for i, item := range body {
 			m.walkItem(fmt.Sprintf("[%d]", i), item, handler, opts...)
@@ -90,7 +94,7 @@ func (m dataCrawler) walkItem(key string, value interface{}, handler DataCrawler
 	}
 
 	switch v := value.(type) {
-	case map[string]interface{}, []interface{}:
+	case map[string]interface{}, map[interface{}]interface{}, []interface{}:
 		o := make([]DataCrawlerOption, 0)
 		if settings.isJoinKeys {
 			o = append(o, WithJoinKeys())

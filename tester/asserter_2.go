@@ -8,7 +8,7 @@ import (
 
 //go:generate mockgen -source=$GOFILE -package=mocks -destination=mocks/$GOFILE
 
-type Asserter2Constructor func(definition interface{}) Asserter2
+type Asserter2Constructor func(name string, definition interface{}) (Asserter2, error)
 
 type Asserter2Descriptor struct {
 	Type        string
@@ -21,7 +21,7 @@ type Assertion2FactoryIn struct {
 }
 
 type Assertion2Factory interface {
-	Create(name string, definition interface{}) (Asserter2, error)
+	Create(assertion Assertion2) (Asserter2, error)
 }
 
 type assertionFactory struct {
@@ -40,13 +40,18 @@ func NewFxAssertionFactory(in Assertion2FactoryIn) Assertion2Factory {
 	return f
 }
 
-func (f *assertionFactory) Create(name string, definition interface{}) (Asserter2, error) {
-	constructor, ok := f.constructors[name]
+func (f *assertionFactory) Create(assertion Assertion2) (Asserter2, error) {
+	constructor, ok := f.constructors[assertion.Type]
 	if !ok {
-		return nil, errors.Errorf("assertion %s is not found", name)
+		return nil, errors.Errorf("assertion %s is not found", assertion.Type)
 	}
 
-	return constructor(definition), nil
+	name := assertion.Name
+	if len(assertion.Name) == 0 {
+		name = assertion.Type
+	}
+
+	return constructor(name, assertion.Assert)
 }
 
 type Asserter2List struct {

@@ -1,20 +1,32 @@
 package graylog
 
 import (
+	"context"
 	"fmt"
 	"github.com/byorty/contractor/common"
 	"github.com/byorty/contractor/tester"
-	"github.com/byorty/contractor/tester/client"
-	"github.com/byorty/contractor/tester/client/graylog/saved"
+	"github.com/byorty/contractor/tester/graylog/client/saved"
 	"github.com/go-openapi/runtime"
+	"time"
 )
 
+const (
+	runnerName = "Graylog"
+)
+
+type Message struct {
+	Body      string
+	Timestamp time.Time
+}
+
 func NewRunner(
+	ctx context.Context,
 	logger common.Logger,
-	graylogClient client.GraylogClient,
+	graylogClient Client,
 	authInfo runtime.ClientAuthInfoWriter,
 ) tester.Runner {
 	return &runner{
+		ctx:           ctx,
 		logger:        logger.Named("graylog_test_runner"),
 		graylogClient: graylogClient,
 		authInfo:      authInfo,
@@ -22,8 +34,9 @@ func NewRunner(
 }
 
 type runner struct {
+	ctx           context.Context
 	logger        common.Logger
-	graylogClient client.GraylogClient
+	graylogClient Client
 	request       *saved.SearchRelativeParams
 	authInfo      runtime.ClientAuthInfoWriter
 	testCase      tester.TestCase2
@@ -31,11 +44,14 @@ type runner struct {
 
 func (r *runner) Setup(testCase tester.TestCase2) {
 	r.testCase = testCase
+	var limit int64 = 1000
 	sorting := "timestamp:asc"
 	r.request = &saved.SearchRelativeParams{
-		Query: fmt.Sprintf("%s", testCase.Setup.Query),
-		Range: int64(testCase.Setup.Range.Seconds()),
-		Sort:  &sorting,
+		Context: r.ctx,
+		Query:   fmt.Sprintf("%s AND test_case:true", testCase.Setup.Query),
+		Range:   int64(testCase.Setup.Range.Seconds()),
+		Sort:    &sorting,
+		Limit:   &limit,
 	}
 }
 
@@ -46,6 +62,7 @@ func (r *runner) Run(assertions tester.Asserter2List) tester.RunnerReportList {
 		r.logger.Error(err)
 		assertionsResults := tester.NewAssertionResultList()
 		assertionsResults.Add(tester.AssertionResult{
+			Name:     runnerName,
 			Status:   tester.AssertionResultStatusFailure,
 			Expected: "graylog response present",
 			Actual:   err.Error(),
@@ -57,38 +74,57 @@ func (r *runner) Run(assertions tester.Asserter2List) tester.RunnerReportList {
 		return reports
 	}
 
-	correlationMessages := common.NewMap[string, common.List[string]]()
+	uniqMessages := common.NewMap[string, bool]()
+	correlationMessages := common.NewMap[string, common.List[Message]]()
 	for _, item := range resp.Payload.Messages {
 		message := item.Message.(map[string]interface{})
-		correlationId := fmt.Sprint(message["correlation_id"])
-		messages, ok := correlationMessages.Get(correlationId)
-		if !ok {
-			messages = common.NewList[string]()
-			correlationMessages.Set(correlationId, messages)
+		if message["correlation_id"] == nil {
+			continue
 		}
 
-		messages.Add(fmt.Sprint(message["msg"]))
+		messageId := fmt.Sprint(message["_id"])
+		//r.logger.Debug(item.Message)
+		_, ok := uniqMessages.Get(messageId)
+		if ok {
+			continue
+		}
+
+		uniqMessages.Set(messageId, true)
+		//r.logger.Debug(message["correlation_id"], message["msg"])
+		correlationId := fmt.Sprint(message["correlation_id"])
+		messageBody := fmt.Sprint(message["msg"])
+		messages, ok := correlationMessages.Get(correlationId)
+		if !ok {
+			if r.testCase.Setup.Trigger == messageBody {
+				messages = common.NewList[Message]()
+				correlationMessages.Set(correlationId, messages)
+
+				//r.logger.Debug(message["correlation_id"], message["timestamp"])
+			}
+			continue
+		}
+
+		timestamp, _ := time.Parse(time.RFC3339Nano, fmt.Sprint(message["timestamp"]))
+		messages.Add(Message{
+			Body:      messageBody,
+			Timestamp: timestamp,
+		})
 	}
+
+	//r.logger.Debug(uniqMessages)
 
 	assertionIterator := assertions.Iterator()
 	for correlationId, list := range correlationMessages.Entries() {
-		var testCaseStarted bool
 		assertionIterator.Reset()
 		assertion := assertionIterator.Next()
+		list.Sort(func(a, b Message) bool {
+			return a.Timestamp.UnixNano() < b.Timestamp.UnixNano()
+		})
 		messageIterator := list.Iterator()
 		correlationResults := tester.NewAssertionResultList()
 		for messageIterator.HasNext() {
 			message := messageIterator.Next()
-			if !testCaseStarted && message == "start" {
-				testCaseStarted = true
-				continue
-			}
-
-			if !testCaseStarted {
-				continue
-			}
-
-			results := assertion.Assert(message)
+			results := assertion.Assert(message.Body)
 			correlationResults.Add(results.Entries()...)
 			if assertionIterator.HasNext() && results.IsPassed() {
 				assertion = assertionIterator.Next()
@@ -109,8 +145,9 @@ func (r *runner) Run(assertions tester.Asserter2List) tester.RunnerReportList {
 
 		if correlationResults.Len() == 0 {
 			correlationResults.Add(tester.AssertionResult{
+				Name:     runnerName,
 				Status:   tester.AssertionResultStatusFailure,
-				Expected: "runner messages present",
+				Expected: "graylog messages present",
 				Actual:   "nil",
 			})
 		}
@@ -125,6 +162,7 @@ func (r *runner) Run(assertions tester.Asserter2List) tester.RunnerReportList {
 		reports.Add(tester.RunnerReport{
 			Name: r.testCase.Name,
 			Assertions: tester.NewAssertionResultList(tester.AssertionResult{
+				Name:     runnerName,
 				Status:   tester.AssertionResultStatusFailure,
 				Expected: "graylog messages present",
 				Actual:   "nil",

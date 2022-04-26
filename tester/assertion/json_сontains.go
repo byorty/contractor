@@ -16,6 +16,7 @@ type jsonContains struct {
 	dataCrawler       common.DataCrawler
 	dataCrawlerOpts   []common.DataCrawlerOption
 	expressionFactory common.ExpressionFactory
+	name              string
 	expressions       map[string]string
 }
 
@@ -23,6 +24,7 @@ func NewJsonContains(
 	logger common.Logger,
 	dataCrawler common.DataCrawler,
 	expressionFactory common.ExpressionFactory,
+	name string,
 	definition interface{},
 ) tester.Asserter2 {
 	expressions := make(map[string]string)
@@ -39,15 +41,17 @@ func NewJsonContains(
 		logger:            logger.Named("json_assertion"),
 		expressionFactory: expressionFactory,
 		expressions:       expressions,
+		name:              name,
 	}
 }
 
 func (a *jsonContains) Assert(data interface{}) tester.AssertionResultList {
-	root, err := ajson.Unmarshal([]byte(fmt.Sprint(data)))
 	list := tester.NewAssertionResultList()
+	root, err := ajson.Unmarshal([]byte(fmt.Sprint(data)))
 	if err != nil {
+		a.logger.Error(err)
 		list.Add(tester.AssertionResult{
-			Name:     jsonContainsName,
+			Name:     a.name,
 			Status:   tester.AssertionResultStatusFailure,
 			Expected: "json present",
 			Actual:   err.Error(),
@@ -57,10 +61,12 @@ func (a *jsonContains) Assert(data interface{}) tester.AssertionResultList {
 	}
 
 	for path, expression := range a.expressions {
+		resultName := fmt.Sprintf("Path '%s'", path)
 		output, err := a.expressionFactory.Create(common.ExpressionTypeAsserter, expression)
 		if err != nil {
+			a.logger.Error(err)
 			list.Add(tester.AssertionResult{
-				Name:   jsonContainsName,
+				Name:   resultName,
 				Status: tester.AssertionResultStatusFailure,
 				Actual: err.Error(),
 			})
@@ -70,8 +76,9 @@ func (a *jsonContains) Assert(data interface{}) tester.AssertionResultList {
 		asserter := output.(tester.Asserter)
 		nodes, err := root.JSONPath(path)
 		if err != nil {
+			a.logger.Error(err)
 			list.Add(tester.AssertionResult{
-				Name:     jsonContainsName,
+				Name:     resultName,
 				Status:   tester.AssertionResultStatusFailure,
 				Expected: asserter.GetExpected(),
 				Actual:   err.Error(),
@@ -81,7 +88,7 @@ func (a *jsonContains) Assert(data interface{}) tester.AssertionResultList {
 
 		if len(nodes) == 0 {
 			list.Add(tester.AssertionResult{
-				Name:     jsonContainsName,
+				Name:     resultName,
 				Status:   tester.AssertionResultStatusFailure,
 				Expected: asserter.GetExpected(),
 				Actual:   "nil",
@@ -89,20 +96,23 @@ func (a *jsonContains) Assert(data interface{}) tester.AssertionResultList {
 			continue
 		}
 
-		value, _ := nodes[0].Value()
-		err = asserter.Assert(value)
-		result := tester.AssertionResult{
-			Name:     jsonContainsName,
-			Status:   tester.AssertionResultStatusFailure,
-			Expected: asserter.GetExpected(),
-			Actual:   asserter.GetActual(),
-		}
+		for _, node := range nodes {
+			value, _ := node.Value()
+			err = asserter.Assert(value)
+			result := tester.AssertionResult{
+				Name:     resultName,
+				Status:   tester.AssertionResultStatusSuccess,
+				Expected: asserter.GetExpected(),
+				Actual:   asserter.GetActual(),
+			}
 
-		if err == nil {
-			result.Status = tester.AssertionResultStatusSuccess
-		}
+			if err != nil {
+				a.logger.Error(err)
+				result.Status = tester.AssertionResultStatusFailure
+			}
 
-		list.Add(result)
+			list.Add(result)
+		}
 	}
 
 	return list

@@ -16,11 +16,29 @@ var Constructors = fx.Provide(
 		) tester.Asserter2Descriptor {
 			return tester.Asserter2Descriptor{
 				Type: "json_contains",
-				Constructor: func(definition interface{}) tester.Asserter2 {
+				Constructor: func(name string, definition interface{}) (tester.Asserter2, error) {
 					return NewJsonContains(
 						loggerFactory.CreateCommonLogger(),
 						dataCrawler,
 						expressionFactory,
+						name,
+						definition,
+					), nil
+				},
+			}
+		},
+	},
+	fx.Annotated{
+		Group: "assertion_descriptor",
+		Target: func(
+			expressionFactory common.ExpressionFactory,
+		) tester.Asserter2Descriptor {
+			return tester.Asserter2Descriptor{
+				Type: "plain",
+				Constructor: func(name string, definition interface{}) (tester.Asserter2, error) {
+					return NewPlain(
+						expressionFactory,
+						name,
 						definition,
 					)
 				},

@@ -1,5 +1,7 @@
 package common
 
+import "sort"
+
 type ListOption func(settings *ListSettings)
 
 func WithListSize(size int) ListOption {
@@ -21,6 +23,7 @@ type List[T any] interface {
 	Iterator() Iterator[T]
 	Remove(i int)
 	RemoveAll()
+	Sort(f SortFunc[T])
 }
 
 type genericList[T any] []T
@@ -71,6 +74,35 @@ func (l *genericList[T]) Remove(i int) {
 
 func (l *genericList[T]) RemoveAll() {
 	(*l) = make(genericList[T], 0)
+}
+
+func (l *genericList[T]) Sort(f SortFunc[T]) {
+	sort.Sort(&sorter[T]{
+		list: l,
+		f:    f,
+	})
+}
+
+type SortFunc[T any] func(i, j T) bool
+
+type sorter[T any] struct {
+	list List[T]
+	f    SortFunc[T]
+}
+
+func (s *sorter[T]) Len() int {
+	return s.list.Len()
+}
+
+func (s *sorter[T]) Less(i, j int) bool {
+	return s.f(s.list.Get(i), s.list.Get(j))
+}
+
+func (s *sorter[T]) Swap(i, j int) {
+	a := s.list.Get(i)
+	b := s.list.Get(j)
+	s.list.Set(i, b)
+	s.list.Set(j, a)
 }
 
 type Map[K comparable, V any] interface {

@@ -48,6 +48,8 @@ func (f *loggerFactory) CreateSuccessLogger() Logger {
 		groupHeaderColor:    color.New(color.FgGreen, color.Bold, color.Underline),
 		subGroupHeaderColor: color.New(color.FgGreen, color.Bold, color.Underline),
 		paramColor1:         color.New(color.FgGreen),
+		paramColor2:         color.New(color.FgGreen),
+		paramColor3:         color.New(color.FgYellow),
 	})
 }
 

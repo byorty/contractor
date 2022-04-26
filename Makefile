@@ -4,6 +4,7 @@ GOBUILD=go build
 GOTEST=go test
 
 include .env
+export
 
 PROJECT_DIR=$(shell pwd)
 EXAMPLES_DIR=$(PROJECT_DIR)/specs
@@ -31,23 +32,28 @@ generate:
 update: clean install generate
 
 generate-graylog-client:
-	rm -rf $(PROJECT_DIR)/e2e/client/graylog
-	mkdir -p $(PROJECT_DIR)/e2e/client/graylog
+	rm -rf $(PROJECT_DIR)/tester/graylog/client
+	mkdir -p $(PROJECT_DIR)/tester/graylog/client
 	swagger generate client \
-		-c graylog \
-		-m graylog/models \
+		-m client/models \
 		-f $(EXAMPLES_DIR)/graylog.json \
-		-t $(PROJECT_DIR)/e2e/client
+		-t $(PROJECT_DIR)/tester/graylog
 
 run-tester:
 	$(GORUN) $(CONTRACTOR) -m test \
+							-c $(PROJECT_DIR)/config.yml \
 							-s $(EXAMPLES_DIR)/oa2.yml \
 							-u $(URL_BASE) \
 							-f $(SPEC_TYPE) \
 							-v "VAR_AUTHORIZATION:$(VAR_AUTHORIZATION)"
 
+run-tester2:
+	$(GORUN) $(CONTRACTOR) -m test2 \
+							-c $(PROJECT_DIR)/config.yml
+
 run-mocker:
 	$(GORUN) $(CONTRACTOR) -m mock \
+							-c $(PROJECT_DIR)/config.yml \
 							-s $(EXAMPLES_DIR)/oa2.yml \
 							-u $(URL_BASE) \
 							-f $(SPEC_TYPE) \

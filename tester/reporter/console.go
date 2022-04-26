@@ -39,7 +39,12 @@ func (r *console) Report(report tester.RunnerReport) {
 	} else {
 		r.errorLogger.PrintParameter("Status", "Failure")
 		for _, assertion := range report.Assertions.Entries() {
-			r.errorLogger.PrintParameters(assertion.Name, map[string]interface{}{
+			l := r.errorLogger
+			if assertion.Status == tester.AssertionResultStatusSuccess {
+				l = r.successLogger
+			}
+
+			l.PrintParameters(assertion.Name, map[string]interface{}{
 				common.LoggerReservedKeyExpected: assertion.Expected,
 				common.LoggerReservedKeyActual:   assertion.Actual,
 			})
