@@ -3,7 +3,7 @@ package tester
 import (
 	"context"
 	"github.com/byorty/contractor/common"
-	"github.com/byorty/contractor/converter"
+	"github.com/byorty/contractor/tester/open_api/reader"
 	"github.com/pkg/errors"
 	"go.uber.org/fx"
 )
@@ -14,7 +14,7 @@ var (
 
 type WorkerIn struct {
 	fx.In
-	ConverterContainer converter.Container
+	ConverterContainer reader.Container
 	Tester             Tester
 	Reporters          []Reporter `group:"reporter"`
 }
@@ -28,7 +28,7 @@ func NewFxWorker(in WorkerIn) common.Worker {
 }
 
 type worker struct {
-	converterContainer converter.Container
+	converterContainer reader.Container
 	tester             Tester
 	reporters          []Reporter
 }

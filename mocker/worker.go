@@ -3,14 +3,14 @@ package mocker
 import (
 	"context"
 	"github.com/byorty/contractor/common"
-	"github.com/byorty/contractor/converter"
+	"github.com/byorty/contractor/tester/open_api/reader"
 	"go.uber.org/fx"
 )
 
 type WorkerIn struct {
 	fx.In
 	Ctx                context.Context
-	ConverterContainer converter.Container
+	ConverterContainer reader.Container
 	Mocker             Mocker
 }
 
@@ -24,7 +24,7 @@ func NewFxWorker(in WorkerIn) common.Worker {
 
 type worker struct {
 	ctx                context.Context
-	converterContainer converter.Container
+	converterContainer reader.Container
 	mocker             Mocker
 }
 

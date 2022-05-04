@@ -7,7 +7,6 @@ import (
 )
 
 type Template struct {
-	UID               string
 	BaseUrl           string
 	Path              string
 	Method            string
@@ -17,9 +16,9 @@ type Template struct {
 	CookieParams      map[string]interface{}
 	ExpectedResponses map[int]map[string]interface{}
 	Bodies            map[string]interface{}
-	Tags              []string
-	PostProcessors    []PostProcessor
-	Priority          int
+	//Tags              []string
+	//PostProcessors    []PostProcessor
+	//Priority          int
 }
 
 func (t Template) GetUrl() string {
@@ -48,22 +47,6 @@ func (t Template) GetQueryParams() url.Values {
 	}
 
 	return values
-}
-
-func (t *Template) ContainsTags(expectedTags []string) bool {
-	if len(expectedTags) == 0 {
-		return true
-	}
-
-	for _, expectedTag := range expectedTags {
-		for _, actualTag := range t.Tags {
-			if expectedTag == actualTag {
-				return true
-			}
-		}
-	}
-
-	return false
 }
 
 type PostProcessor struct {

@@ -4,18 +4,18 @@ import (
 	"context"
 	"fmt"
 	"github.com/byorty/contractor/common"
-	"github.com/byorty/contractor/converter"
 	"github.com/byorty/contractor/mocker"
 	"github.com/byorty/contractor/tester"
 	"github.com/byorty/contractor/tester/assertion"
 	"github.com/byorty/contractor/tester/graylog"
+	"github.com/byorty/contractor/tester/open_api/reader"
 	"github.com/byorty/contractor/tester/reporter"
 )
 
 func main() {
 	app := common.NewApplication(
 		common.Constructors,
-		converter.Constructors,
+		reader.Constructors,
 		tester.Constructors,
 		mocker.Constructors,
 		assertion.Constructors,

@@ -45,9 +45,15 @@ func (t *TestCase2) ContainsTags(expectedTags []string) bool {
 }
 
 type TestCase2Setup struct {
-	Query   string        `yaml:"query"`
-	Range   time.Duration `yaml:"range"`
-	Trigger string        `yaml:"trigger"`
+	Query        string                 `yaml:"query"`
+	Range        time.Duration          `yaml:"range"`
+	Trigger      string                 `yaml:"trigger"`
+	Headers      map[string]interface{} `yaml:"headers"`
+	Parameters   map[string]interface{} `yaml:"parameters"`
+	HeaderParams map[string]interface{} `yaml:"-"`
+	PathParams   map[string]interface{} `yaml:"-"`
+	QueryParams  map[string]interface{} `yaml:"-"`
+	CookieParams map[string]interface{} `yaml:"-"`
 }
 
 type Assertion2 struct {

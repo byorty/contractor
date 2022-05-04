@@ -5,6 +5,10 @@ testers:
     password: token
     spec_dir: ${PROJECT_DIR}/specs/e2e
     timeout: 5s
+  open_api:
+    type: oa2
+    filename: ${PROJECT_DIR}/specs/oa2.yml
+    base_url: ${URL_BASE}
 
 reporters:
   console: {}

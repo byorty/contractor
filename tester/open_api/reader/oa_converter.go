@@ -1,4 +1,4 @@
-package converter
+package reader
 
 import (
 	"context"
@@ -98,19 +98,6 @@ func (c *oaConverter) processOperation(arguments common.Arguments, pathName, htt
 				}
 
 				template.ExpectedResponses[statusCode][mediaTypeName] = example.Value
-				if example.Extensions != nil {
-					if tags, ok := example.Extensions[xTagsName]; ok {
-						template.Tags = tags.([]string)
-					}
-
-					if priority, ok := example.Extensions[xPriority]; ok {
-						template.Priority = priority.(int)
-					}
-
-					if postProcessors, ok := example.Extensions[xPostProcessors]; ok {
-						template.PostProcessors = postProcessors.([]common.PostProcessor)
-					}
-				}
 			}
 		}
 	}

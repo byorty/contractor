@@ -9,7 +9,7 @@ CHANGE_USER_NEWS_SUCCESS:                        # уникальное имя
       config:
         variable_name: JWT_TOKEN
         path: $.token
-  request:                                       # описание запроса
+  setup:                                         # описание запроса
     headers:                                     # описание заголовков запроса
       Authorization: ${VAR_AUTHORIZATION}        # поддержка переменных в примере
     parameters:                                  # описание параметров запроса
@@ -18,42 +18,43 @@ CHANGE_USER_NEWS_SUCCESS:                        # уникальное имя
       body:                                      # описание тела запроса для POST, PUT, PATCH запросов
         is_viewed: true                          #
         reaction: USER_NEWS_REACTION_LIKE        #
-  response:                                      # описание ответа
-    status_code: 200                             # статус обязателен
-    body:                                        # описание тела ответа
-      id: eq(30676003)
-      user:
-        id: eq(472)
-      news:
-        id: eq(11401)
-        title: >
-          eq('Домашняя работа: как стартап бывшего топ-менеджера Microsoft зарабатывает на покупке жилья за наличные')
-        annotation: regex('([\\w\\d\\-\\.\\,\\?\\:]){100}')
-        partner: empty()
-        content: regex('([\\w\\d\\-\\.])')
-        hash: eq('ee43501beb0944c412c9580ae604546f')
-        preview_img: eq('977081c0dc136761a13d60c513437dbf')
-        tags: empty()
-        status: eq('NEWS_STATUS_ACTIVE')
-        type: eq('CONTENT_TYPE_NEWS')
-        published_at: date('RFC3339')
+  assertions:                                    #
+    - type: http_status                          # статус обязателен
+      assert: eq(200)                            #
+    - type: json_eq                              # описание тела ответа
+      assert:                                    #
+        id: eq(30676003)
+        user:
+          id: eq(472)
+        news:
+          id: eq(11401)
+          title: >
+            eq('Домашняя работа: как стартап бывшего топ-менеджера Microsoft зарабатывает на покупке жилья за наличные')
+          annotation: regex('([\\w\\d\\-\\.\\,\\?\\:]){100}')
+          partner: empty()
+          content: regex('([\\w\\d\\-\\.])')
+          hash: eq('ee43501beb0944c412c9580ae604546f')
+          preview_img: eq('977081c0dc136761a13d60c513437dbf')
+          tags: empty()
+          status: eq('NEWS_STATUS_ACTIVE')
+          type: eq('CONTENT_TYPE_NEWS')
+          published_at: date('RFC3339')
+          created_at: date('RFC3339')
+          category: empty()
+          source: empty()
+          preview_img_title: empty()
+          preview_img_url: empty()
+          hyper_link: empty()
+          hyper_link_title: empty()
+          author: empty()
+          subject:
+            id: eq(32)
+          time_to_read: empty()
+          super_category: empty()
+          seo:
+            title: empty()
+            description: empty()
+            keywords: empty()
+        reaction: eq('USER_NEWS_REACTION_LIKE')
+        is_viewed: eq(true)
         created_at: date('RFC3339')
-        category: empty()
-        source: empty()
-        preview_img_title: empty()
-        preview_img_url: empty()
-        hyper_link: empty()
-        hyper_link_title: empty()
-        author: empty()
-        subject:
-          id: eq(32)
-        time_to_read: empty()
-        super_category: empty()
-        seo:
-          title: empty()
-          description: empty()
-          keywords: empty()
-      reaction: eq('USER_NEWS_REACTION_LIKE')
-      is_viewed: eq(true)
-      created_at: date('RFC3339')
-
