@@ -1,8 +1,10 @@
 package converter
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/byorty/contractor/common"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/ghodss/yaml"
@@ -124,6 +126,7 @@ func (c *oaConverter) processXOperationExamples(arguments common.Arguments, oper
 
 	var operationExamples XOperationExamples
 	err := c.readAndUnmarshal(
+		arguments,
 		filepath.Join(
 			filepath.Dir(arguments.SpecLocation),
 			strings.Trim(string(examplesFilename.(json.RawMessage)), "\""),
@@ -238,10 +241,14 @@ func (c *oaConverter) processParameter(baseUrl, pathName, httpMethod string, par
 	}
 }
 
-func (c *oaConverter) readAndUnmarshal(filename string, i interface{}) error {
+func (c *oaConverter) readAndUnmarshal(arguments common.Arguments, filename string, i interface{}) error {
 	buf, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
+	}
+
+	for key, value := range arguments.Variables {
+		buf = bytes.ReplaceAll(buf, []byte(fmt.Sprintf("${%s}", key)), []byte(value))
 	}
 
 	switch filepath.Ext(filename) {
