@@ -7,9 +7,12 @@ import (
 	"github.com/getkin/kin-openapi/openapi2conv"
 )
 
-func NewFxOa2Converter() Converter {
+func NewFxOa2Converter(
+	loggerFactory common.LoggerFactory,
+) Converter {
 	return &oa2Converter{
 		oaConverter: &oaConverter{
+			logger:    loggerFactory.CreateCommonLogger().Named("oa2_converter"),
 			container: make(common.TemplateContainer),
 		},
 	}

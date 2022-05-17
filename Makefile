@@ -42,10 +42,18 @@ generate-graylog-client:
 run-tester:
 	$(GORUN) $(CONTRACTOR) -m test \
 							-c $(PROJECT_DIR)/config.yml \
-							-s $(EXAMPLES_DIR)/oa2.yml \
+							-s /Users/solomonov/GolandProjects/src/git.setpartnerstv.ru/meta/proto/swagger.yml \
 							-u $(URL_BASE) \
 							-f $(SPEC_TYPE) \
-							-v "VAR_AUTHORIZATION:$(VAR_AUTHORIZATION)"
+								-t b2e \
+	-v "VAR_HEADER_AUTHORIZATION:$(VAR_HEADER_AUTHORIZATION)" \
+	-v "VAR_HEADER_ERP_AUTHORIZATION:$(VAR_HEADER_ERP_AUTHORIZATION)" \
+	-v "VAR_STATUS_CODE_SUCCESS:$(VAR_STATUS_CODE_SUCCESS)" \
+	-v "VAR_STATUS_CODE_FORBIDDEN:$(VAR_STATUS_CODE_FORBIDDEN)" \
+	-v "VAR_STATUS_CODE_NOT_FOUND:$(VAR_STATUS_CODE_NOT_FOUND)" \
+	-v "VAR_STATUS_CODE_INVALID_PARAM:$(VAR_STATUS_CODE_INVALID_PARAM)" \
+	-v "VAR_STATUS_CODE_INVALID:$(VAR_STATUS_CODE_INVALID)" \
+	-v "VAR_USER_CUSTOMER_ACTIVE:$(VAR_USER_CUSTOMER_ACTIVE)"
 
 run-tester2:
 	$(GORUN) $(CONTRACTOR) -m test2 \

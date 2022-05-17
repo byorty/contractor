@@ -81,7 +81,7 @@ func (b *asserterBuilder) Build(testCase *TestCase) AssertionProcessor {
 
 	b.dataCrawler.Walk(testCase.ExpectedResult.Body, func(k string, v interface{}) {
 		processor.assertions[k] = &Assertion{
-			expression: v.(string),
+			expression: fmt.Sprint(v),
 		}
 	}, b.dataCrawlerOpts...)
 

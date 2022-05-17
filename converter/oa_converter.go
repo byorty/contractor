@@ -9,7 +9,6 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/ghodss/yaml"
 	"io/ioutil"
-	"log"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -43,6 +42,7 @@ type XOperationExample struct {
 type XOperationExamples map[string]XOperationExample
 
 type oaConverter struct {
+	logger    common.Logger
 	container common.TemplateContainer
 }
 
@@ -124,6 +124,7 @@ func (c *oaConverter) processXOperationExamples(arguments common.Arguments, oper
 		return
 	}
 
+	logger := c.logger.With("example", examplesFilename)
 	var operationExamples XOperationExamples
 	err := c.readAndUnmarshal(
 		arguments,
@@ -134,7 +135,7 @@ func (c *oaConverter) processXOperationExamples(arguments common.Arguments, oper
 		&operationExamples,
 	)
 	if err != nil {
-		log.Println(err)
+		logger.Error(err)
 		return
 	}
 
@@ -250,6 +251,8 @@ func (c *oaConverter) readAndUnmarshal(arguments common.Arguments, filename stri
 	for key, value := range arguments.Variables {
 		buf = bytes.ReplaceAll(buf, []byte(fmt.Sprintf("${%s}", key)), []byte(value))
 	}
+
+	//c.logger.Debug(string(buf))
 
 	switch filepath.Ext(filename) {
 	case ".json":

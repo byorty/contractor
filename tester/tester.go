@@ -23,11 +23,13 @@ type Tester interface {
 }
 
 func NewFxTester(
+	loggerFactory common.LoggerFactory,
 	mediaConverter common.MediaConverter,
 	builder AsserterBuilder,
 	postProcessorFactory PostProcessorFactory,
 ) Tester {
 	return &tester{
+		logger:               loggerFactory.CreateCommonLogger().Named("tester"),
 		cases:                make(TestCaseContainer, 0),
 		builder:              builder,
 		mediaConverter:       mediaConverter,
@@ -36,6 +38,7 @@ func NewFxTester(
 }
 
 type tester struct {
+	logger               common.Logger
 	cases                TestCaseContainer
 	builder              AsserterBuilder
 	mediaConverter       common.MediaConverter
@@ -76,7 +79,7 @@ func (t *tester) Configure(ctx context.Context, arguments common.Arguments, cont
 func (t *tester) createRequest(tc *TestCase) (*http.Request, error) {
 	template := tc.Template
 	mediaType := tc.ExpectedResult.Headers[common.HeaderContentType]
-	buf, err := t.mediaConverter.Marshal(common.MediaType(mediaType), tc.ExpectedResult.Body)
+	buf, err := t.mediaConverter.Marshal(common.MediaType(mediaType), tc.Template.Bodies[mediaType])
 	if err != nil {
 		return nil, err
 	}
@@ -106,6 +109,10 @@ func (t *tester) createRequest(tc *TestCase) (*http.Request, error) {
 	for headerName, headerValue := range headerParams {
 		req.Header.Add(headerName, headerValue)
 	}
+
+	//t.logger.Debug(req.URL.String())
+	//t.logger.Debug(req.Header)
+	//t.logger.Debug(string(buf))
 
 	return req, nil
 }
