@@ -7,10 +7,6 @@ import (
 	"github.com/spyzhov/ajson"
 )
 
-const (
-	jsonContainsName = "Json Contains"
-)
-
 type jsonContains struct {
 	logger            common.Logger
 	dataCrawler       common.DataCrawler
@@ -49,7 +45,6 @@ func (a *jsonContains) Assert(data interface{}) tester.AssertionResultList {
 	list := tester.NewAssertionResultList()
 	root, err := ajson.Unmarshal([]byte(fmt.Sprint(data)))
 	if err != nil {
-		a.logger.Error(err)
 		list.Add(tester.AssertionResult{
 			Name:     a.name,
 			Status:   tester.AssertionResultStatusFailure,
@@ -64,7 +59,6 @@ func (a *jsonContains) Assert(data interface{}) tester.AssertionResultList {
 		resultName := fmt.Sprintf("Path '%s'", path)
 		output, err := a.expressionFactory.Create(common.ExpressionTypeAsserter, expression)
 		if err != nil {
-			a.logger.Error(err)
 			list.Add(tester.AssertionResult{
 				Name:   resultName,
 				Status: tester.AssertionResultStatusFailure,
@@ -76,7 +70,6 @@ func (a *jsonContains) Assert(data interface{}) tester.AssertionResultList {
 		asserter := output.(tester.Asserter)
 		nodes, err := root.JSONPath(path)
 		if err != nil {
-			a.logger.Error(err)
 			list.Add(tester.AssertionResult{
 				Name:     resultName,
 				Status:   tester.AssertionResultStatusFailure,
@@ -107,7 +100,6 @@ func (a *jsonContains) Assert(data interface{}) tester.AssertionResultList {
 			}
 
 			if err != nil {
-				a.logger.Error(err)
 				result.Status = tester.AssertionResultStatusFailure
 			}
 
