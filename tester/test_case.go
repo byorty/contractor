@@ -45,9 +45,8 @@ func (t *TestCase2) ContainsTags(expectedTags []string) bool {
 }
 
 type TestCase2Setup struct {
-	Query   string        `yaml:"query"`
-	Range   time.Duration `yaml:"range"`
-	Trigger string        `yaml:"trigger"`
+	Query string        `yaml:"query"`
+	Range time.Duration `yaml:"range"`
 }
 
 type Assertion2 struct {

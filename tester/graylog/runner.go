@@ -95,12 +95,17 @@ func (r *runner) Run(assertions tester.Asserter2List) tester.RunnerReportList {
 		messageBody := fmt.Sprint(message["msg"])
 		messages, ok := correlationMessages.Get(correlationId)
 		if !ok {
-			if r.testCase.Setup.Trigger == messageBody {
+			assert := assertions.Get(0)
+			if assert == nil {
+				continue
+			}
+
+			results := assert.Assert(messageBody)
+			if results.IsPassed() {
 				messages = common.NewList[Message]()
 				correlationMessages.Set(correlationId, messages)
-
-				//r.logger.Debug(message["correlation_id"], message["timestamp"])
 			}
+
 			continue
 		}
 
