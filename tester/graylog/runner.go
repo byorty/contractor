@@ -101,12 +101,12 @@ func (r *runner) Run(assertions tester.Asserter2List) tester.RunnerReportList {
 			}
 
 			results := assert.Assert(messageBody)
-			if results.IsPassed() {
-				messages = common.NewList[Message]()
-				correlationMessages.Set(correlationId, messages)
+			if !results.IsPassed() {
+				continue
 			}
 
-			continue
+			messages = common.NewList[Message]()
+			correlationMessages.Set(correlationId, messages)
 		}
 
 		timestamp, _ := time.Parse(time.RFC3339Nano, fmt.Sprint(message["timestamp"]))
